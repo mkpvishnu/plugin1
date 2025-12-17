@@ -150,8 +150,6 @@ capture:
 quests:
   daily_quest_count: 3
   max_daily_completions: 5
-  mob_kill_daily_cap: 100
-  ore_mine_daily_cap: 200
 
 # PvP Settings
 pvp:

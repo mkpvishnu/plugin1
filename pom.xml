@@ -6,11 +6,12 @@
 
     <groupId>com.seasonsofconflict</groupId>
     <artifactId>SeasonsOfConflict</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>SeasonsOfConflict</name>
-    <description>Hardcore survival with progressive difficulty and seasonal mechanics</description>
+    <description>Hardcore survival with progressive difficulty, seasonal mechanics, and territory control</description>
+    <url>https://github.com/mkpvishnu/plugin1</url>
 
     <properties>
         <java.version>17</java.version>
