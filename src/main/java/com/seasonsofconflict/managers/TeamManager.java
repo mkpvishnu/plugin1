@@ -315,4 +315,18 @@ public class TeamManager {
         }
         return players;
     }
+
+    /**
+     * Alias for getTeamPlayerCount (for convenience)
+     */
+    public int getPlayerCount(int teamId) {
+        return getTeamPlayerCount(teamId);
+    }
+
+    /**
+     * Alias for getTeamAliveCount (for convenience)
+     */
+    public int getAlivePlayerCount(int teamId) {
+        return getTeamAliveCount(teamId);
+    }
 }

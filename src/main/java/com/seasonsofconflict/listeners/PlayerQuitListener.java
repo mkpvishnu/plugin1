@@ -17,8 +17,8 @@ public class PlayerQuitListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        
-        plugin.getCombatManager().handleCombatLog(player);
+
+        // Just save player data when they quit (combat logging no longer punished)
         plugin.getGameManager().savePlayerData(player.getUniqueId());
     }
 }

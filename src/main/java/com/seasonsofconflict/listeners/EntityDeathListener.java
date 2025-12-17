@@ -26,8 +26,6 @@ public class EntityDeathListener implements Listener {
         Player killer = event.getEntity().getKiller();
         PlayerData data = plugin.getGameManager().getPlayerData(killer);
 
-        if (data.getDailyMobKills() >= 100) return;
-
         data.incrementDailyMobKills();
 
         String mobType = event.getEntity().getType().name().toLowerCase();
