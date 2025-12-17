@@ -1,9 +1,10 @@
 name: SeasonsOfConflict
-version: '1.0'
+version: '1.0.0'
 main: com.seasonsofconflict.SeasonsOfConflict
 api-version: '1.20'
-description: Hardcore survival with progressive difficulty and seasonal mechanics
-author: YourName
+description: Hardcore survival with progressive difficulty, seasonal mechanics, and territory control
+authors: [mkpvishnu, Claude]
+website: https://github.com/mkpvishnu/plugin1
 
 commands:
   team:
