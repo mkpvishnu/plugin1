@@ -1,0 +1,49 @@
+name: SeasonsOfConflict
+version: '1.0'
+main: com.seasonsofconflict.SeasonsOfConflict
+api-version: '1.20'
+description: Hardcore survival with progressive difficulty and seasonal mechanics
+author: YourName
+
+commands:
+  team:
+    description: Team information and management
+    usage: /team [info|list|members]
+    aliases: [t]
+
+  quest:
+    description: Quest management
+    usage: /quest [list|progress]
+    aliases: [q]
+
+  territory:
+    description: Territory information
+    usage: /territory [info|map|capture]
+    aliases: [terr]
+
+  revive:
+    description: Revive a dead teammate
+    usage: /revive <player>
+
+  shop:
+    description: Spend quest points
+    usage: /shop
+
+  stats:
+    description: View statistics
+    usage: /stats [player]
+
+  leaderboard:
+    description: View rankings
+    usage: /leaderboard [kills|points|teams]
+    aliases: [lb]
+
+  soc:
+    description: Admin commands
+    usage: /soc <subcommand>
+    permission: soc.admin
+
+permissions:
+  soc.admin:
+    description: Allows use of admin commands
+    default: op
