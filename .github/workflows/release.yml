@@ -1,0 +1,60 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Upload JAR to Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: target/SeasonsOfConflict-*.jar
+        body: |
+          ## Seasons of Conflict ${{ steps.get_version.outputs.VERSION }}
+
+          ### Download
+          Download `SeasonsOfConflict-1.0.0.jar` and place it in your server's `plugins/` folder.
+
+          ### Requirements
+          - Minecraft 1.20.1
+          - Spigot or Paper server
+          - Java 17 or higher
+
+          ### Installation
+          1. Download the JAR file below
+          2. Place in `plugins/` folder
+          3. Restart your server
+          4. Configure `plugins/SeasonsOfConflict/config.yml`
+
+          ### What's Included
+          - Full plugin with SQLite bundled
+          - Ready to use - no additional dependencies needed
+
+          See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
