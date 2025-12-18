@@ -51,7 +51,7 @@ public class ShopCommand implements CommandExecutor {
 
         MessageUtils.sendMessage(player, "&6=== Team Shop ===");
         MessageUtils.sendMessage(player, "&e1. &fRevive Teammate - &a" + cost + " pts &7(/revive <player>)");
-        MessageUtils.sendMessage(player, "&e2. &fTerritory Shield (24hr) - &a200 pts &7(Coming Soon)");
+        MessageUtils.sendMessage(player, "&e2. &fTerritory Shield (24hr) - &a200 pts &7(/shop buy shield)");
         MessageUtils.sendMessage(player, "&e3. &fTeam Buff: 2x Drops (1hr) - &a100 pts &7(Coming Soon)");
         MessageUtils.sendMessage(player, "&e4. &fGolden Apple x2 - &a150 pts &7(/shop buy apples)");
         MessageUtils.sendMessage(player, "&e5. &fIron Armor Set - &a200 pts &7(/shop buy armor)");
@@ -62,7 +62,7 @@ public class ShopCommand implements CommandExecutor {
         // Validate arguments
         if (args.length < 2) {
             MessageUtils.sendError(player, "Usage: /shop buy <item>");
-            MessageUtils.sendMessage(player, "&7Available: &eapples&7, &earmor");
+            MessageUtils.sendMessage(player, "&7Available: &eapples&7, &earmor&7, &eshield");
             return;
         }
 
@@ -70,7 +70,7 @@ public class ShopCommand implements CommandExecutor {
         ShopItem item = ShopItem.fromString(args[1]);
         if (item == null) {
             MessageUtils.sendError(player, "Unknown item: " + args[1]);
-            MessageUtils.sendMessage(player, "&7Available: &eapples&7, &earmor");
+            MessageUtils.sendMessage(player, "&7Available: &eapples&7, &earmor&7, &eshield");
             return;
         }
 
@@ -96,7 +96,13 @@ public class ShopCommand implements CommandExecutor {
             return;
         }
 
-        // Check inventory space
+        // Handle territory shield specially
+        if (item == ShopItem.TERRITORY_SHIELD) {
+            handleTerritoryShieldPurchase(player, team, item.getCost());
+            return;
+        }
+
+        // Check inventory space for physical items
         ItemStack[] items = item.getItems();
         if (!hasInventorySpace(player, items)) {
             MessageUtils.sendError(player, "Not enough inventory space! Need " +
@@ -121,6 +127,59 @@ public class ShopCommand implements CommandExecutor {
         // Log purchase
         plugin.getLogger().info(player.getName() + " purchased " + item.getDisplayName() +
             " from shop for " + item.getCost() + " points (Team: " + team.getName() + ")");
+    }
+
+    private void handleTerritoryShieldPurchase(Player player, TeamData team, int cost) {
+        var territory = plugin.getTerritoryManager().getTerritory(team.getHomeTerritory());
+
+        if (territory == null) {
+            MessageUtils.sendError(player, "Your team has no home territory!");
+            return;
+        }
+
+        // Check if territory is owned by team
+        if (territory.getOwnerTeamId() != team.getTeamId()) {
+            MessageUtils.sendError(player, "Your team must own your home territory to activate a shield!");
+            return;
+        }
+
+        // Check if shield is on cooldown
+        if (territory.isOnShieldCooldown()) {
+            long remaining = (territory.getShieldCooldownExpiry() - System.currentTimeMillis()) / 1000 / 60 / 60;
+            MessageUtils.sendError(player, "Territory shield is on cooldown for " + remaining + " more hours!");
+            return;
+        }
+
+        // Check if shield is already active
+        if (territory.hasActiveShield()) {
+            MessageUtils.sendError(player, "Territory shield is already active!");
+            return;
+        }
+
+        // Deduct points and activate shield
+        team.subtractPoints(cost);
+        plugin.getTeamManager().saveTeam(team);
+
+        int duration = plugin.getConfig().getInt("capture.shield_duration_hours", 24);
+        int cooldown = plugin.getConfig().getInt("capture.shield_cooldown_hours", 72);
+        territory.activateShield(duration, cooldown);
+
+        // Confirmation
+        MessageUtils.sendSuccess(player, "Territory Shield activated on " + territory.getName() + "!");
+        MessageUtils.sendMessage(player, "&7Duration: &e" + duration + " hours");
+        MessageUtils.sendMessage(player, "&7Cooldown: &e" + cooldown + " hours");
+        MessageUtils.sendMessage(player, "&7Team points remaining: &e" + team.getQuestPoints());
+
+        // Notify team
+        plugin.getTeamManager().getTeamAlivePlayers(team.getTeamId()).forEach(p -> {
+            if (!p.equals(player)) {
+                MessageUtils.sendMessage(p, "&a" + player.getName() + " activated a shield on " + territory.getName() + "!");
+            }
+        });
+
+        // Log
+        plugin.getLogger().info(player.getName() + " activated territory shield on " +
+            territory.getName() + " for team " + team.getName());
     }
 
     private boolean hasInventorySpace(Player player, ItemStack[] items) {

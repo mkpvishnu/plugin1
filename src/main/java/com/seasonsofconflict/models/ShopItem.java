@@ -7,7 +7,9 @@ public enum ShopItem {
     GOLDEN_APPLES("golden_apples", "Golden Apple x2", 150,
                   new String[]{"golden_apples", "apples", "gapples"}),
     IRON_ARMOR("iron_armor", "Iron Armor Set", 200,
-               new String[]{"iron_armor", "armor", "iron_set"});
+               new String[]{"iron_armor", "armor", "iron_set"}),
+    TERRITORY_SHIELD("territory_shield", "Territory Shield (24hr)", 200,
+                    new String[]{"territory_shield", "shield", "protect"});
 
     private final String id;
     private final String displayName;
