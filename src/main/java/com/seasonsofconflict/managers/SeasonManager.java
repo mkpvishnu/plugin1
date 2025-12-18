@@ -84,10 +84,22 @@ public class SeasonManager {
     public void applySeasonalEffects() {
         GameState gameState = plugin.getGameManager().getGameState();
         Season currentSeason = gameState.getCurrentSeason();
+        boolean isApocalypse = gameState.isApocalypse();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getGameManager().getPlayerData(player);
             if (!data.isAlive()) continue;
+
+            // Apocalypse mode: Apply Hunger II to all players
+            if (isApocalypse) {
+                player.addPotionEffect(new PotionEffect(
+                    PotionEffectType.HUNGER,
+                    60 * 20, // 60 seconds
+                    1, // Level 2 (Hunger II)
+                    false,
+                    false
+                ));
+            }
 
             switch (currentSeason) {
                 case SPRING:
@@ -110,6 +122,16 @@ public class SeasonManager {
                     break;
 
                 case WINTER:
+                    // Apply Hunger I effect in Winter (unless apocalypse, which applies Hunger II)
+                    if (!isApocalypse) {
+                        player.addPotionEffect(new PotionEffect(
+                            PotionEffectType.HUNGER,
+                            60 * 20, // 60 seconds
+                            0, // Level 1 (Hunger I)
+                            false,
+                            false
+                        ));
+                    }
                     // Freezing damage is handled separately
                     break;
             }

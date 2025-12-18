@@ -28,6 +28,10 @@ public class TerritoryData {
     private BonusType bonusType;
     private int baseBonusPercent;
 
+    // Shield (in-memory, not persisted to database)
+    private long shieldExpiryTime; // System.currentTimeMillis() when shield expires
+    private long shieldCooldownExpiry; // System.currentTimeMillis() when cooldown expires
+
     public TerritoryData(int territoryId, String name, int minX, int maxX, int minZ, int maxZ,
                          int beaconX, int beaconY, int beaconZ,
                          BonusType bonusType, int baseBonusPercent) {
@@ -45,6 +49,8 @@ public class TerritoryData {
         this.ownerTeamId = 0;
         this.capturingTeamId = 0;
         this.captureProgress = 0;
+        this.shieldExpiryTime = 0;
+        this.shieldCooldownExpiry = 0;
     }
 
     public boolean isInTerritory(Location location) {
@@ -169,5 +175,35 @@ public class TerritoryData {
 
     public void setBaseBonusPercent(int baseBonusPercent) {
         this.baseBonusPercent = baseBonusPercent;
+    }
+
+    public boolean hasActiveShield() {
+        return System.currentTimeMillis() < shieldExpiryTime;
+    }
+
+    public long getShieldExpiryTime() {
+        return shieldExpiryTime;
+    }
+
+    public void setShieldExpiryTime(long shieldExpiryTime) {
+        this.shieldExpiryTime = shieldExpiryTime;
+    }
+
+    public boolean isOnShieldCooldown() {
+        return System.currentTimeMillis() < shieldCooldownExpiry;
+    }
+
+    public long getShieldCooldownExpiry() {
+        return shieldCooldownExpiry;
+    }
+
+    public void setShieldCooldownExpiry(long shieldCooldownExpiry) {
+        this.shieldCooldownExpiry = shieldCooldownExpiry;
+    }
+
+    public void activateShield(int durationHours, int cooldownHours) {
+        long now = System.currentTimeMillis();
+        this.shieldExpiryTime = now + (durationHours * 60L * 60L * 1000L);
+        this.shieldCooldownExpiry = now + (cooldownHours * 60L * 60L * 1000L);
     }
 }

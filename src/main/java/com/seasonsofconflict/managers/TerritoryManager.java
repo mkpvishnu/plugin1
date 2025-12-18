@@ -262,6 +262,19 @@ public class TerritoryManager {
         TeamData capturingTeam = plugin.getTeamManager().getTeam(capturingTeamId);
         if (capturingTeam == null) return;
 
+        // Check if territory has active shield
+        if (territory.hasActiveShield()) {
+            // Reset capture progress and notify
+            territory.setCapturingTeamId(0);
+            territory.setCaptureProgress(0);
+            MessageUtils.broadcast("&c" + capturingTeam.getColoredName() +
+                " &cfailed to capture &e" + territory.getName() +
+                " &c- Territory is protected by a shield!");
+            plugin.getLogger().info("Capture of " + territory.getName() +
+                " by team " + capturingTeam.getName() + " blocked by shield");
+            return;
+        }
+
         int previousOwner = territory.getOwnerTeamId();
 
         // Update territory ownership

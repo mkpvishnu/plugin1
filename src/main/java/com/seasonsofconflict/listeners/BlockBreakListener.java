@@ -36,7 +36,9 @@ public class BlockBreakListener implements Listener {
             } else if (type == Material.COAL_ORE || type == Material.DEEPSLATE_COAL_ORE) {
                 plugin.getQuestManager().updateQuestProgress(player, "coal_mined", 1);
             } else if (type == Material.DIAMOND_ORE || type == Material.DEEPSLATE_DIAMOND_ORE) {
-                if (Math.random() > 0.10) {
+                // Read diamond drop chance from config (default 10%)
+                double dropChance = plugin.getConfig().getDouble("diamond.drop_chance", 0.10);
+                if (Math.random() > dropChance) {
                     event.setDropItems(false);
                 }
             }
