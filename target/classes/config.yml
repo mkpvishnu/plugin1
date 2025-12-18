@@ -1,0 +1,194 @@
+# Seasons of Conflict Configuration File
+
+# Game Settings
+game:
+  world_name: "world"
+  world_border_center:
+    x: 0
+    z: 0
+  initial_border_size: 5000
+  minimum_border_size: 500
+
+# Season Settings (in real-world days)
+seasons:
+  days_per_season: 30
+
+# Difficulty Scaling per Cycle
+difficulty:
+  cycles:
+    1:
+      mob_damage: 1.0
+      mob_health: 1.0
+      resources: 1.0
+      border: 5000
+      revival_cost: 500
+    2:
+      mob_damage: 1.25
+      mob_health: 1.25
+      resources: 0.85
+      border: 4500
+      revival_cost: 600
+    3:
+      mob_damage: 1.5
+      mob_health: 1.5
+      resources: 0.70
+      border: 4000
+      revival_cost: 750
+    4:
+      mob_damage: 1.75
+      mob_health: 1.75
+      resources: 0.55
+      border: 3500
+      revival_cost: 1000
+    5:
+      mob_damage: 2.0
+      mob_health: 2.0
+      resources: 0.40
+      border: 3000
+      revival_cost: 1500
+    6:
+      mob_damage: 2.5
+      mob_health: 2.5
+      resources: 0.25
+      border: 2500
+      revival_cost: 2500
+    7:
+      mob_damage: 3.0
+      mob_health: 3.0
+      resources: 0.10
+      border: 2000
+      revival_cost: 5000
+  apocalypse:
+    border_shrink_per_day: 200
+
+# Player Settings
+player:
+  max_health: 80  # 40 hearts
+  max_revivals_per_cycle: 2
+  spawn_protection_seconds: 60
+  combat_log_threshold_seconds: 10
+
+# Territory Settings
+territories:
+  1:
+    name: "Tundra Peaks"
+    bounds:
+      minX: -2500
+      maxX: 2500
+      minZ: -2500
+      maxZ: -1000
+    beacon:
+      x: 0
+      y: 100
+      z: -1750
+    bonus_type: "ORE"
+    base_bonus: 50
+  2:
+    name: "Dark Forest"
+    bounds:
+      minX: -2500
+      maxX: -500
+      minZ: -1000
+      maxZ: 1000
+    beacon:
+      x: -1500
+      y: 80
+      z: 0
+    bonus_type: "WOOD"
+    base_bonus: 50
+  3:
+    name: "Contested Badlands"
+    bounds:
+      minX: -500
+      maxX: 500
+      minZ: -500
+      maxZ: 500
+    beacon:
+      x: 0
+      y: 90
+      z: 0
+    bonus_type: "XP"
+    base_bonus: 100
+    starting_owner: 0  # Neutral
+  4:
+    name: "Savanna Plains"
+    bounds:
+      minX: 500
+      maxX: 2500
+      minZ: -1000
+      maxZ: 1000
+    beacon:
+      x: 1500
+      y: 75
+      z: 0
+    bonus_type: "CROP"
+    base_bonus: 100
+  5:
+    name: "Ocean Coast"
+    bounds:
+      minX: -2500
+      maxX: 2500
+      minZ: 1000
+      maxZ: 2500
+    beacon:
+      x: 0
+      y: 65
+      z: 1750
+    bonus_type: "FISH"
+    base_bonus: 50
+
+capture:
+  time_seconds: 300
+  radius: 10
+  defense_radius: 50
+  shield_duration_hours: 24
+  shield_cooldown_hours: 72
+  point_reward: 100
+  point_steal_percent: 25
+
+# Quest Settings
+quests:
+  daily_quest_count: 3
+  max_daily_completions: 5
+
+# PvP Settings
+pvp:
+  kill_reward_base: 50
+  kill_cooldown_hours: 12
+  bounty_threshold: 3
+  bounty_levels:
+    3: 25
+    5: 50
+    10: 100
+
+# Diamond Settings
+diamond:
+  drop_chance: 0.10  # 10% of vanilla
+
+# Team Settings
+teams:
+  1:
+    name: "North"
+    color: "AQUA"
+  2:
+    name: "West"
+    color: "GREEN"
+  3:
+    name: "Center"
+    color: "GOLD"
+  4:
+    name: "East"
+    color: "RED"
+  5:
+    name: "South"
+    color: "BLUE"
+
+# Messages
+messages:
+  prefix: "&6[SoC]&r "
+  team_eliminated: "&c{team} has been ELIMINATED!"
+  territory_captured: "&a{team} captured {territory}!"
+  season_change: "&eThe season has changed to {season}!"
+  cycle_advance: "&cCycle {cycle} begins. The world grows harsher..."
+  apocalypse_start: "&4=== APOCALYPSE MODE ACTIVATED ==="
+  game_end: "&6{team} WINS! Congratulations!"

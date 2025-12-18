@@ -140,7 +140,7 @@ public class HealthManager {
     /**
      * Give spawn protection to a player
      */
-    private void giveSpawnProtection(Player player) {
+    public void giveSpawnProtection(Player player) {
         if (player == null) return;
 
         int protectionSeconds = getSpawnProtectionSeconds();

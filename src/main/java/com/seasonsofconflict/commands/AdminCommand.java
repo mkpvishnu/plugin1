@@ -1,13 +1,19 @@
 package com.seasonsofconflict.commands;
 
 import com.seasonsofconflict.SeasonsOfConflict;
+import com.seasonsofconflict.models.GameState;
 import com.seasonsofconflict.models.PlayerData;
 import com.seasonsofconflict.models.Season;
 import com.seasonsofconflict.models.TeamData;
+import com.seasonsofconflict.models.TerritoryData;
 import com.seasonsofconflict.utils.MessageUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class AdminCommand implements CommandExecutor {
 
@@ -26,10 +32,15 @@ public class AdminCommand implements CommandExecutor {
 
         if (args.length == 0) {
             MessageUtils.sendMessage(sender, "&6=== SoC Admin Commands ===");
-            MessageUtils.sendMessage(sender, "&e/soc setseason <season>");
-            MessageUtils.sendMessage(sender, "&e/soc setcycle <number>");
-            MessageUtils.sendMessage(sender, "&e/soc setpoints <team> <amount>");
-            MessageUtils.sendMessage(sender, "&e/soc apocalypse");
+            MessageUtils.sendMessage(sender, "&e/soc setseason <season> &7- Change season");
+            MessageUtils.sendMessage(sender, "&e/soc setcycle <number> &7- Set difficulty cycle");
+            MessageUtils.sendMessage(sender, "&e/soc setpoints <team> <amount> &7- Set team points");
+            MessageUtils.sendMessage(sender, "&e/soc apocalypse [on|off] &7- Toggle apocalypse");
+            MessageUtils.sendMessage(sender, "&e/soc revive <player> &7- Admin revive player");
+            MessageUtils.sendMessage(sender, "&e/soc eliminate <team> &7- Eliminate a team");
+            MessageUtils.sendMessage(sender, "&e/soc territories &7- View territory status");
+            MessageUtils.sendMessage(sender, "&e/soc teams &7- View team status");
+            MessageUtils.sendMessage(sender, "&e/soc gameinfo &7- View game state");
             return true;
         }
 
@@ -65,8 +76,40 @@ public class AdminCommand implements CommandExecutor {
                 break;
 
             case "apocalypse":
-                plugin.getDifficultyManager().startApocalypse();
-                MessageUtils.sendSuccess(sender, "Apocalypse mode activated!");
+                if (args.length < 2) {
+                    // Toggle
+                    if (plugin.getDifficultyManager().isApocalypse()) {
+                        plugin.getDifficultyManager().stopApocalypse();
+                        MessageUtils.sendSuccess(sender, "Apocalypse mode disabled!");
+                    } else {
+                        plugin.getDifficultyManager().startApocalypse();
+                        MessageUtils.sendSuccess(sender, "Apocalypse mode activated!");
+                    }
+                } else {
+                    String action = args[1].toLowerCase();
+                    switch (action) {
+                        case "on":
+                        case "start":
+                            if (plugin.getDifficultyManager().isApocalypse()) {
+                                MessageUtils.sendError(sender, "Apocalypse is already active!");
+                            } else {
+                                plugin.getDifficultyManager().startApocalypse();
+                                MessageUtils.sendSuccess(sender, "Apocalypse mode activated!");
+                            }
+                            break;
+                        case "off":
+                        case "stop":
+                            if (!plugin.getDifficultyManager().isApocalypse()) {
+                                MessageUtils.sendError(sender, "Apocalypse is not active!");
+                            } else {
+                                plugin.getDifficultyManager().stopApocalypse();
+                                MessageUtils.sendSuccess(sender, "Apocalypse mode disabled!");
+                            }
+                            break;
+                        default:
+                            MessageUtils.sendError(sender, "Usage: /soc apocalypse [on|off]");
+                    }
+                }
                 break;
 
             case "setpoints":
@@ -112,6 +155,150 @@ public class AdminCommand implements CommandExecutor {
                 } catch (NumberFormatException e) {
                     MessageUtils.sendError(sender, "Invalid amount: " + args[2]);
                 }
+                break;
+
+            case "revive":
+                if (args.length < 2) {
+                    MessageUtils.sendError(sender, "Usage: /soc revive <player>");
+                    return true;
+                }
+
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    MessageUtils.sendError(sender, "Player not found!");
+                    return true;
+                }
+
+                PlayerData targetData = plugin.getGameManager().getPlayerData(target);
+
+                if (targetData.isAlive()) {
+                    MessageUtils.sendError(sender, "That player is already alive!");
+                    return true;
+                }
+
+                TeamData reviveTeam = plugin.getTeamManager().getTeam(targetData.getTeamId());
+                if (reviveTeam == null || reviveTeam.isEliminated()) {
+                    MessageUtils.sendError(sender, "Player's team is eliminated!");
+                    return true;
+                }
+
+                // Set player alive (skip revival count)
+                targetData.setAlive(true);
+                plugin.getGameManager().savePlayerData(target.getUniqueId());
+
+                // Teleport to team beacon
+                TerritoryData homeTerritory = plugin.getTerritoryManager().getTerritory(reviveTeam.getHomeTerritory());
+                if (homeTerritory != null) {
+                    String worldName = plugin.getConfig().getString("game.world_name", "world");
+                    Location spawnLocation = homeTerritory.getBeaconLocation(worldName);
+                    spawnLocation.add(0, 2, 0);
+                    target.teleport(spawnLocation);
+                }
+
+                // Set gamemode and health
+                target.setGameMode(GameMode.SURVIVAL);
+                plugin.getHealthManager().setMaxHealth(target);
+                plugin.getHealthManager().giveSpawnProtection(target);
+
+                // Notify
+                MessageUtils.sendSuccess(sender, "Revived " + target.getName() + " (admin bypass)");
+                MessageUtils.sendSuccess(target, "You have been revived by an admin!");
+
+                plugin.getLogger().info(sender.getName() + " admin-revived " + target.getName());
+                break;
+
+            case "eliminate":
+                if (args.length < 2) {
+                    MessageUtils.sendError(sender, "Usage: /soc eliminate <team>");
+                    return true;
+                }
+
+                TeamData targetTeam = parseTeam(args[1]);
+                if (targetTeam == null) {
+                    MessageUtils.sendError(sender, "Unknown team: " + args[1]);
+                    MessageUtils.sendMessage(sender, "&7Available teams: North, West, Center, East, South (or 1-5)");
+                    return true;
+                }
+
+                if (targetTeam.isEliminated()) {
+                    MessageUtils.sendError(sender, targetTeam.getName() + " is already eliminated!");
+                    return true;
+                }
+
+                // Eliminate the team
+                plugin.getTeamManager().eliminateTeam(targetTeam.getTeamId());
+
+                MessageUtils.sendSuccess(sender, "Eliminated " + targetTeam.getColoredName() + " &a(admin)");
+                plugin.getLogger().info(sender.getName() + " admin-eliminated team " + targetTeam.getName());
+                break;
+
+            case "territories":
+                MessageUtils.sendMessage(sender, "&6&l=== Territory Overview ===");
+                for (int i = 1; i <= 5; i++) {
+                    TerritoryData t = plugin.getTerritoryManager().getTerritory(i);
+                    if (t != null) {
+                        String owner = t.getOwnerTeamId() == 0 ? "&7[NEUTRAL]" :
+                            plugin.getTeamManager().getTeam(t.getOwnerTeamId()).getColoredName();
+                        String bonus = t.getBonusType() + " +" + t.getBaseBonusPercent() + "%";
+
+                        MessageUtils.sendMessage(sender, "&e" + i + ". " + t.getName());
+                        MessageUtils.sendMessage(sender, "   Owner: " + owner);
+                        MessageUtils.sendMessage(sender, "   &7Bonus: &f" + bonus);
+                        MessageUtils.sendMessage(sender, "   &7Beacon: &f" +
+                            t.getBeaconX() + ", " + t.getBeaconY() + ", " + t.getBeaconZ());
+
+                        if (t.getCapturingTeamId() != 0) {
+                            TeamData capturingTeam = plugin.getTeamManager().getTeam(t.getCapturingTeamId());
+                            MessageUtils.sendMessage(sender, "   &c⚠ Being captured by " +
+                                capturingTeam.getColoredName() +
+                                " &7(" + t.getCaptureProgress() + "%)");
+                        }
+                    }
+                }
+                break;
+
+            case "teams":
+                MessageUtils.sendMessage(sender, "&6&l=== Team Overview ===");
+                for (int i = 1; i <= 5; i++) {
+                    TeamData t = plugin.getTeamManager().getTeam(i);
+                    if (t != null) {
+                        String status = t.isEliminated() ? "&c&l[ELIMINATED]" : "&a&l[ACTIVE]";
+                        int totalPlayers = plugin.getTeamManager().getPlayerCount(i);
+                        int alivePlayers = plugin.getTeamManager().getAlivePlayerCount(i);
+                        int territories = t.getControlledTerritories().size();
+
+                        MessageUtils.sendMessage(sender, status + " " + t.getColoredName());
+                        MessageUtils.sendMessage(sender, "   &7Players: &f" + alivePlayers + "/" + totalPlayers + " alive");
+                        MessageUtils.sendMessage(sender, "   &7Points: &f" + t.getQuestPoints());
+                        MessageUtils.sendMessage(sender, "   &7Territories: &f" + territories);
+
+                        // List online players
+                        StringBuilder onlinePlayers = new StringBuilder("   &7Online: &f");
+                        boolean first = true;
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            PlayerData pd = plugin.getGameManager().getPlayerData(p);
+                            if (pd.getTeamId() == i) {
+                                if (!first) onlinePlayers.append(", ");
+                                onlinePlayers.append(p.getName());
+                                if (!pd.isAlive()) onlinePlayers.append(" &c[DEAD]");
+                                first = false;
+                            }
+                        }
+                        if (first) onlinePlayers.append("&7None");
+                        MessageUtils.sendMessage(sender, onlinePlayers.toString());
+                    }
+                }
+                break;
+
+            case "gameinfo":
+                GameState gs = plugin.getGameManager().getGameState();
+                MessageUtils.sendMessage(sender, "&6&l=== Game State ===");
+                MessageUtils.sendMessage(sender, "&eSeason: &f" + gs.getCurrentSeason());
+                MessageUtils.sendMessage(sender, "&eCycle: &f" + gs.getCurrentCycle());
+                MessageUtils.sendMessage(sender, "&eApocalypse: &f" + (gs.isApocalypse() ? "&cYES" : "&aNo"));
+                MessageUtils.sendMessage(sender, "&eWorld Border: &f" + gs.getWorldBorderSize());
+                MessageUtils.sendMessage(sender, "&eRevival Cost: &f" + gs.getRevivalCost());
+                MessageUtils.sendMessage(sender, "&eActive Teams: &f" + plugin.getTeamManager().getRemainingTeamCount());
                 break;
 
             default:

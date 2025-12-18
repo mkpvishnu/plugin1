@@ -120,6 +120,31 @@ public class DifficultyManager {
     }
 
     /**
+     * Disable apocalypse mode and restore normal cycle scaling
+     */
+    public void stopApocalypse() {
+        GameState gameState = plugin.getGameManager().getGameState();
+
+        if (!gameState.isApocalypse()) {
+            return;
+        }
+
+        gameState.setApocalypse(false);
+
+        // Restore scaling for current cycle (or cycle 7 if beyond)
+        int currentCycle = gameState.getCurrentCycle();
+        int applyCycle = Math.min(currentCycle, 7);
+        applyCycleScaling(applyCycle);
+
+        plugin.getGameManager().saveGameState();
+
+        MessageUtils.broadcast("&a&lAPOCALYPSE MODE DISABLED");
+        MessageUtils.broadcast("&7Normal difficulty scaling restored.");
+
+        plugin.getLogger().info("APOCALYPSE MODE DISABLED");
+    }
+
+    /**
      * Get mob damage multiplier from game state
      */
     public double getMobDamageMultiplier() {
