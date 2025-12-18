@@ -27,8 +27,8 @@ commands:
     usage: /revive <player>
 
   shop:
-    description: Spend quest points
-    usage: /shop
+    description: Team shop for purchasing items
+    usage: /shop [buy <item>]
 
   stats:
     description: View statistics
