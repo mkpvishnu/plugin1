@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!target/SeasonsOfConflict-*.jar
 *.war
 *.nar
 *.ear
