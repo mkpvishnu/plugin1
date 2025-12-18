@@ -59,6 +59,38 @@ You spawn at your team's beacon with:
 
 ---
 
+## 📊 Scoreboard & HUD
+
+While playing, you'll see a **live scoreboard** on the right side of your screen (updates every 2 seconds) showing:
+
+### Team Information
+- **Team name** (in your team's color)
+- **Team points** (shared resource for shop and revivals)
+- **Alive members** (e.g., "3/5 alive")
+
+### Territory Status
+- **Current territory** you're standing in (or "No Territory")
+- **Territory owner** (shows if your team owns it, if it's neutral, or if it's enemy-owned)
+
+### Game State
+- **Current season** (Spring/Summer/Fall/Winter)
+- **Difficulty cycle** (1-7, or "APOCALYPSE" when cycle 8+ is reached)
+
+### Personal Status
+When **alive**, one of these will be shown:
+- **Kill streak** (e.g., "Streak: 3 kills") - Shown when you have 3+ kills
+- **Your bounty** (e.g., "Bounty: 50 pts") - The reward other teams get for killing you
+- "No bounty" - When you have less than 3 kills
+
+When **dead**, shows:
+- "DEAD - 0/2 revivals" - Indicates you can still be revived twice
+- "DEAD - 1/2 revivals" - You've been revived once, one revival remaining
+- "DEAD - 2/2 revivals" - You're permanently dead until next cycle
+
+This HUD gives you **constant awareness** of your team's status, current location strategic value, and the world's difficulty state.
+
+---
+
 ## 🗺️ Territory System
 
 ### The 5 Territories
@@ -148,6 +180,7 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 **Theme:** Survival and Hardship
 
 **Effects:**
+- ⚠️ **Hunger I Effect** - Constant hunger effect on all living players
 - ⚠️ **Freezing Damage** - Take 1 heart (2 HP) damage every 30 seconds outdoors
 - ⚠️ **Food Production -50%** - Reduced food from all sources (placeholder)
 - ❌ **Crops Disabled** - CROP territory bonuses don't work
@@ -184,6 +217,7 @@ Every **120 days (after completing all 4 seasons)**, the difficulty increases. T
 ### 💀 Apocalypse Mode (Cycle 8+)
 
 When the 7th cycle ends, **the world begins to collapse**:
+- 🔥 **Hunger II Effect** - Severe hunger effect on all living players (overrides seasonal Hunger I)
 - 🔥 **Border Shrinks** - Reduces by **200 blocks every day**
 - 🔥 **Extreme Difficulty** - Mobs deal 3.5x damage, have 3.5x health
 - 🔥 **Severe Resource Scarcity** - Only 40% of normal resources
@@ -305,6 +339,7 @@ Spend team points to purchase items and upgrades.
 |------|------|-------------|---------|
 | **Golden Apple x2** | 150 pts | Instant healing and absorption | `/shop buy apples` |
 | **Iron Armor Set** | 200 pts | Full iron helmet, chest, legs, boots | `/shop buy armor` |
+| **Territory Shield** | 200 pts | 24hr protection for your home territory | `/shop buy shield` |
 
 **Note:** Revival costs 500-10,000 pts depending on cycle (see Difficulty Cycles table).
 
@@ -316,6 +351,32 @@ Spend team points to purchase items and upgrades.
 - Only living players can purchase items
 - Requires sufficient team points
 - Items are given directly to your inventory
+
+### Territory Shield
+
+The **Territory Shield** provides temporary protection for your team's home territory:
+
+**Requirements:**
+- Your team must own your home territory (e.g., Team 1 must own Territory 1)
+- Costs 200 team points to activate
+- Only available when not on cooldown
+
+**Protection:**
+- Blocks all capture attempts for **24 real-world hours**
+- Enemy teams cannot make progress on capturing your territory
+- Capture progress resets to 0 when capture is blocked
+- Visual notification sent to attacking team when shield blocks capture
+
+**Cooldown:**
+- After shield expires, there's a **48-hour cooldown** before you can purchase another
+- Cooldown starts when shield expires (not when purchased)
+- Shield status visible in `/territory info`
+
+**Strategy Tips:**
+- Use shields during vulnerable times (e.g., when most team members are offline)
+- Coordinate with team before purchasing (points are shared)
+- Shield does NOT protect players from PvP or mob damage
+- Consider saving shields for later cycles when capture rewards are higher
 
 ---
 
@@ -758,11 +819,8 @@ cp target/SeasonsOfConflict-1.0.0.jar /path/to/server/plugins/
 
 The following features are **not yet implemented** or have limitations:
 
-1. **Scoreboard/HUD Display** - Team, territory, season, and cycle info is NOT displayed on screen yet (planned feature)
-2. **Hardcore Mode** - World is in Survival mode, not Hardcore mode
-3. **Food Regeneration System** - Natural regeneration from food is enabled (NOT season-based yet)
-4. **Diamond Scarcity Config** - Diamond drop chance is hardcoded at 10%, NOT read from config.yml
-5. **Territory Shields** - Shop items for territory shields are placeholders (not functional)
+1. **Hardcore Mode** - World is in Survival mode, not Hardcore mode
+2. **Natural Food Regeneration** - Food provides normal regeneration (no seasonal modifiers to food regen yet)
 
 ---
 
