@@ -142,8 +142,8 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 
 **Effects:**
 - ✅ **Regeneration I** - Passive healing potion effect for all living players
-- ✅ **+50% Crop Growth** - Farms grow faster (config placeholder)
-- ✅ **Fewer Mobs** - Reduced hostile spawn rates (config placeholder)
+- ✅ **+50% Crop Growth** - Farms grow 50% faster (configurable in config.yml)
+- ✅ **Fewer Mobs** - 50% reduced hostile spawn rates (configurable in config.yml)
 - 📍 **Best Territories:** Dark Forest (wood), Savanna Plains (crops)
 
 **Strategy:** Focus on base building, farming, and stockpiling resources while healing is available.
@@ -154,9 +154,8 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 **Theme:** Heat and Hostility
 
 **Effects:**
-- ⚠️ **Mob Damage +50%** - Mobs hit 1.5x harder
-- ✅ **Ore Drops +50%** - Extra ore from mining (placeholder)
-- ⚠️ **Aggressive Mobs** - Increased aggression (placeholder)
+- ⚠️ **Mob Damage +50%** - Mobs hit 1.5x harder (configurable in config.yml)
+- ✅ **Ore Drops +50%** - Extra ore from mining (configurable in config.yml)
 - 📍 **Best Territories:** Tundra Peaks (ore mining)
 
 **Strategy:** Mine aggressively for resources, avoid unnecessary combat, fortify defenses.
@@ -167,8 +166,8 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 **Theme:** Harvest Before Winter
 
 **Effects:**
-- ✅ **Harvest Bonus +50%** - 1.5x crop yields
-- ✅ **All Drops +25%** - Increased drops (placeholder)
+- ✅ **Harvest Bonus +50%** - 1.5x crop yields (configurable in config.yml)
+- ✅ **All Drops +25%** - Increased drops from blocks, mobs, and fishing (configurable in config.yml)
 - ✅ **Resource Abundance** - Best time to gather
 - 📍 **Best Territories:** Savanna Plains (crops), Ocean Coast (fishing)
 
@@ -181,8 +180,8 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 
 **Effects:**
 - ⚠️ **Hunger I Effect** - Constant hunger effect on all living players
-- ⚠️ **Freezing Damage** - Take 1 heart (2 HP) damage every 30 seconds outdoors
-- ⚠️ **Food Production -50%** - Reduced food from all sources (placeholder)
+- ⚠️ **Freezing Damage** - Take 1 heart (2 HP) damage every 30 seconds outdoors (configurable in config.yml)
+- ⚠️ **Food Production -50%** - Reduced food from crops, animals, and fishing (configurable in config.yml)
 - ❌ **Crops Disabled** - CROP territory bonuses don't work
 - ✅ **Heat Sources** - Stay within 5 blocks of heat sources to avoid freezing
 - 📍 **Best Territories:** Tundra Peaks (ore), Contested Badlands (XP)

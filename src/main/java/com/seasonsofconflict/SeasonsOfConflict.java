@@ -89,6 +89,10 @@ public class SeasonsOfConflict extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EntityDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
+        // Seasonal effect listeners
+        getServer().getPluginManager().registerEvents(new CropGrowthListener(this), this);
+        getServer().getPluginManager().registerEvents(new MobSpawnListener(this), this);
+        getServer().getPluginManager().registerEvents(new FishingListener(this), this);
     }
 
     private void registerCommands() {

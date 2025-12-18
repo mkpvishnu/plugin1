@@ -12,6 +12,19 @@ game:
 # Season Settings (in real-world days)
 seasons:
   days_per_season: 30
+  # Seasonal effect multipliers
+  spring:
+    crop_growth_multiplier: 1.5  # 50% faster crop growth
+    mob_spawn_multiplier: 0.5    # 50% fewer mob spawns
+  summer:
+    ore_drop_multiplier: 1.5     # 50% more ore drops
+    mob_damage_multiplier: 1.5   # 50% more mob damage (already implemented)
+  fall:
+    harvest_multiplier: 1.5      # 50% more harvest (already implemented)
+    all_drops_multiplier: 1.25   # 25% bonus to all drops
+  winter:
+    food_production_multiplier: 0.5  # 50% less food from all sources
+    freezing_damage: 2.0         # Hearts of damage every 30 seconds outdoors
 
 # Difficulty Scaling per Cycle
 difficulty:
