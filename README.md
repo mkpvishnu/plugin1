@@ -89,6 +89,81 @@ When **dead**, shows:
 
 This HUD gives you **constant awareness** of your team's status, current location strategic value, and the world's difficulty state.
 
+### Boss Bars
+
+In addition to the scoreboard, **boss bars** appear at the top of your screen to show critical real-time information:
+
+#### 1. 🎯 Capture Progress Bar
+**When:** You or your team are near an enemy territory beacon
+- Shows the territory name and capture progress percentage
+- Color changes based on progress:
+  - 🔴 **Red** (0-33%): Just started
+  - 🟡 **Yellow** (34-66%): Making progress
+  - 🟢 **Green** (67-100%): Almost captured
+- Updates live every 2 seconds
+
+#### 2. 🌍 Season Transition Timer
+**When:** Less than 7 days remain until the next season
+- Shows current season → next season countdown
+- Example: "Spring → Summer in 3 day(s)"
+- Helps you prepare for seasonal changes
+- Color: Blue/Cyan
+
+#### 3. ⚠️ World Border Warning
+**When:** You're within 200 blocks of the world border (during apocalypse)
+- Shows exact distance to border in blocks
+- Color: Red (danger warning)
+- Critical for survival during apocalypse mode when border shrinks daily
+- Updates live as you move
+
+**Note:** Only relevant boss bars are shown at any time. Multiple bars can stack if applicable.
+
+---
+
+## 🧭 Compass Tracking System
+
+The **Tracking Compass** helps you navigate to important locations with three cycling modes.
+
+### Getting a Compass
+
+Use `/compass` (or `/track`) to receive a Tracking Compass.
+- Cannot summon if you already have one
+- Compass has custom lore explaining the tracking modes
+
+### How to Use
+
+1. **Hold the compass** in your main hand
+2. **Right-click** to cycle through tracking modes
+3. The compass needle points to the current target
+4. Chat message confirms the active mode
+
+### Tracking Modes
+
+#### 🏠 Home Territory (Default)
+- Points to your team's home territory beacon
+- Example: Team North → Tundra Peaks beacon
+- Always available
+
+#### ⚔️ Nearest Enemy Territory
+- Points to the closest enemy-controlled territory beacon
+- Ignores neutral territories and your own territories
+- Useful for planning attacks
+
+#### 👥 Nearest Teammate
+- Points to the closest living teammate
+- Updates every 5 seconds as players move
+- Useful for regrouping or coordinating attacks
+- Won't track dead teammates
+
+**Command:**
+- `/compass` or `/track` - Get a tracking compass
+
+**Tips:**
+- Compass auto-updates every 5 seconds
+- Right-click to manually cycle modes anytime
+- Keep compass in inventory for automatic updates
+- Great for coordinating territory captures (need 3+ players)
+
 ---
 
 ## 🗺️ Territory System
@@ -237,12 +312,48 @@ Every **120 days (after completing all 4 seasons)**, the difficulty increases. T
 ### 💀 Apocalypse Mode (Cycle 8+)
 
 When the 7th cycle ends, **the world begins to collapse**:
+
+#### Gameplay Changes
 - 🔥 **Hunger II Effect** - Severe hunger effect on all living players (overrides seasonal Hunger I)
-- 🔥 **Border Shrinks** - Reduces by **200 blocks every day**
+- 🔥 **Border Shrinks** - Reduces by **200 blocks every day** (configurable)
 - 🔥 **Extreme Difficulty** - Mobs deal 3.5x damage, have 3.5x health
 - 🔥 **Severe Resource Scarcity** - Only 40% of normal resources
 - 🔥 **Revival Cost 10,000 pts** - Nearly impossible to revive
 - 🔥 **Final Confrontation** - Teams are forced to fight
+
+#### Atmospheric World Effects
+
+The apocalypse brings terrifying environmental changes (all configurable):
+
+**🌑 Dark Crimson Sky**
+- Permanent midnight with blood-red storm clouds
+- Daylight cycle disabled
+- Creates an ominous atmosphere
+
+**🌊 Water → Lava Conversion**
+- Water blocks slowly convert to lava over time
+- Conversion rate: 0.1% per tick (configurable)
+- Oceans and lakes become hazardous
+- Makes water sources extremely valuable
+
+**🔥 Random Fire Spawning**
+- Fires spontaneously appear on solid blocks
+- Spawn chance: 0.05% per tick (configurable)
+- Burns structures and spreads naturally
+- Forces constant vigilance
+
+**💨 Ash Particles**
+- Constant white ash, falling dust, and embers
+- Density: 30% (configurable)
+- Obscures vision slightly
+- Creates hellish atmosphere
+
+**💎 End Crystals (Optional)**
+- Rare spawn of end crystals with portal effects
+- Disabled by default (can enable in config)
+- Adds endgame visual flair
+
+**These effects combine to make the world truly apocalyptic and force teams into final confrontation.**
 
 **The apocalypse continues until only one team remains.**
 
@@ -304,6 +415,103 @@ Every player receives **3 random daily quests** at midnight (server time). Quest
 **Commands:**
 - `/quest` or `/q` - View your active quests and progress
 - Quest progress is tracked automatically
+
+---
+
+## 🌩️ Random World Events
+
+Random world events create dynamic challenges and opportunities throughout the game. Events are checked every **2 hours** (configurable) and last for varying durations.
+
+### Event System
+
+- **Automatic Triggering:** Events start based on configured probabilities
+- **One at a Time:** Only one world event can be active at any moment
+- **Dramatic Announcements:** Title cards announce event start/end to all players
+- **All Configurable:** Every event can be enabled/disabled and tuned in config.yml
+
+### The 5 World Events
+
+#### 🌕 Blood Moon (15% chance)
+**Duration:** 30 minutes (default)
+
+**Effects:**
+- 🔴 Forces nighttime for entire duration
+- 👾 **2x Hostile Mob Spawns** - Vastly more enemies
+- ⚔️ **+100% Mob Damage** - Mobs hit twice as hard
+- 💪 **+50% Mob Health** - Mobs are tankier
+
+**Strategy:** Seek shelter, avoid combat, or group up for defense. Great time to grind kills if you're prepared.
+
+**Title Card:** "BLOOD MOON - The dead grow restless..."
+
+---
+
+#### ☄️ Meteor Shower (10% chance)
+**Duration:** 15 minutes (default)
+
+**Effects:**
+- ☄️ **Random Meteors Fall** - 3 meteors per minute (configurable)
+- 💥 **Explosions on Impact** - Power 2.0 (configurable)
+- 💎 **Ore Deposits Spawn** - Diamond and iron ore at impact sites
+- 🔥 Flame and explosion particles
+
+**Strategy:** Hunt for meteor impact sites for valuable ores. Risk vs. reward - explosions can damage you!
+
+**Title Card:** "METEOR SHOWER - The sky is falling!"
+
+---
+
+#### 🌌 Aurora (20% chance)
+**Duration:** 60 minutes (default)
+
+**Effects:**
+- ✨ **Speed II Effect** - All living players gain speed boost (configurable level)
+- 🌠 **Northern Lights** - Beautiful END_ROD and GLOW particles overhead
+- 🌙 **Night Only** - Only active during nighttime (configurable)
+
+**Strategy:** Perfect time for travel, territory captures, or escaping danger. Take advantage of the speed boost!
+
+**Title Card:** "AURORA - Northern lights grant swiftness"
+
+---
+
+#### 🌫️ Fog (15% chance)
+**Duration:** 45 minutes (default)
+
+**Effects:**
+- ☁️ **Dense Cloud Particles** - Reduced visibility
+- 👁️ **Blindness Effect (Optional)** - Amplifier 0 by default (configurable)
+
+**Strategy:** Stay in familiar areas, avoid exploration. Great for sneaky territory captures or ambushes.
+
+**Title Card:** "FOG - Visibility reduced"
+
+---
+
+#### ☀️ Heatwave (12% chance, Summer Only)
+**Duration:** 40 minutes (default)
+
+**Effects:**
+- ⚠️ **Damage Outdoors** - Take 1 heart (2 HP) damage every 5 seconds in sunlight (configurable)
+- 🔥 **Flame Particles** - Heat visual effects
+- 🌞 **Summer Season Required** - Only occurs during Summer
+
+**Strategy:** Stay indoors or underground! Seek shade under trees or in caves. Dangerous for prolonged outdoor activities.
+
+**Title Card:** "HEATWAVE - Seek shade or suffer"
+
+---
+
+### Event Configuration
+
+All events can be customized in `config.yml`:
+- Enable/disable individual events
+- Adjust trigger probabilities
+- Change durations
+- Tune effect intensities (mob multipliers, damage amounts, particle density, etc.)
+- Set seasonal requirements
+
+See [Configuration Reference](#️-configuration-reference) for details.
 
 ---
 
@@ -470,6 +678,7 @@ Eliminated teams:
 | `/stats <player>` | - | View another player's stats | `/stats Alex` |
 | `/leaderboard` | `/lb` | View kill leaderboard | `/leaderboard` |
 | `/leaderboard teams` | `/lb teams` | View team rankings | `/lb teams` |
+| `/compass` | `/track` | Get a tracking compass | `/compass` |
 
 ---
 
@@ -594,10 +803,38 @@ game:
 ```yaml
 seasons:
   days_per_season: 30              # Real-world days per season
+  spring:
+    crop_growth_multiplier: 1.5    # Crop growth speed boost (1.5 = 50% faster)
+    mob_spawn_multiplier: 0.5      # Mob spawn rate (0.5 = 50% fewer mobs)
+  summer:
+    ore_drop_multiplier: 1.5       # Extra ore drops (1.5 = 50% more)
+    mob_damage_multiplier: 1.5     # Mob damage increase (1.5 = 50% more damage)
+  fall:
+    harvest_multiplier: 1.5        # Crop harvest bonus (1.5 = 50% more crops)
+    all_drops_multiplier: 1.25     # All drops bonus (1.25 = 25% more)
+  winter:
+    food_production_multiplier: 0.5  # Food production penalty (0.5 = 50% less food)
+    freezing_damage: 2.0           # Damage per 30s outdoors (2.0 = 1 heart)
 ```
 
-**Explanation:**
-- `days_per_season`: How many real-world days before the season changes (Spring→Summer→Fall→Winter). Default is 30 days.
+**Explanations:**
+- `days_per_season`: How many real-world days before the season changes (Spring→Summer→Fall→Winter)
+
+**Spring:**
+- `crop_growth_multiplier`: Crops grow faster (1.5 = 50% chance to skip a growth stage)
+- `mob_spawn_multiplier`: Hostile mob spawn rate (0.5 = 50% of natural spawns are cancelled)
+
+**Summer:**
+- `ore_drop_multiplier`: Bonus ore drops when mining (1.5 = 50% chance for double drops)
+- `mob_damage_multiplier`: Mob damage increase (1.5 = 50% more damage from all hostile mobs)
+
+**Fall:**
+- `harvest_multiplier`: Crop harvest bonus (1.5 = 50% chance for double crops)
+- `all_drops_multiplier`: All drops bonus (1.25 = 25% chance for extra drops from blocks/mobs/fishing)
+
+**Winter:**
+- `food_production_multiplier`: Food production penalty (0.5 = 50% chance food items are removed from crops/fishing/animals)
+- `freezing_damage`: Damage dealt to players outdoors every 30 seconds (2.0 HP = 1 heart)
 
 ---
 
@@ -621,6 +858,11 @@ difficulty:
     # ... cycles 3-7 follow same pattern
   apocalypse:
     border_shrink_per_day: 200     # Blocks to shrink border daily in apocalypse
+    water_to_lava_chance: 0.001    # Chance per tick for water→lava (0.001 = 0.1%)
+    fire_spawn_chance: 0.0005      # Chance per tick for random fire (0.0005 = 0.05%)
+    ash_particle_density: 0.3      # Particle spawn probability (0.3 = 30%)
+    enable_dark_sky: true          # Enable permanent dark crimson sky
+    enable_end_crystals: false     # Enable rare end crystal spawns
 ```
 
 **Explanations:**
@@ -629,7 +871,16 @@ difficulty:
 - `resources`: Drop rate multiplier (0.85 = 85% of normal drops, 0.10 = 10% of normal)
 - `border`: World border diameter in blocks for this cycle
 - `revival_cost`: **Team points** required to revive one player (increases per cycle)
+
+**Apocalypse Effects:**
 - `border_shrink_per_day`: How many blocks the border shrinks each day during apocalypse mode
+- `water_to_lava_chance`: Probability per tick that water converts to lava (0.001 = 0.1% chance)
+- `fire_spawn_chance`: Probability per tick that fire spawns on solid blocks (0.0005 = 0.05% chance)
+- `ash_particle_density`: Chance to spawn ash particles around players (0.3 = 30% probability)
+- `enable_dark_sky`: If true, forces permanent midnight with red storm clouds
+- `enable_end_crystals`: If true, allows rare end crystal spawns (visual flair only)
+
+**⚠️ Warning:** Setting water_to_lava_chance or fire_spawn_chance too high can destroy the world quickly! Use low values (< 0.01).
 
 ---
 
@@ -804,6 +1055,86 @@ messages:
   - `&0-9, a-f` - Colors (0=black, 1=dark blue, ... a=green, b=aqua, ... f=white)
   - `&l` - Bold, `&m` - Strikethrough, `&n` - Underline, `&o` - Italic
   - `&r` - Reset formatting
+
+---
+
+### World Events Configuration
+
+```yaml
+world_events:
+  enabled: true                    # Enable/disable entire world events system
+  check_interval_hours: 2          # How often to check for new events
+
+  blood_moon:
+    enabled: true                  # Enable blood moon event
+    chance: 0.15                   # 15% chance to trigger when checked
+    duration_minutes: 30           # Event lasts 30 minutes
+    mob_spawn_multiplier: 2.0      # 2x mob spawns
+    mob_damage_multiplier: 2.0     # 2x mob damage
+    mob_health_multiplier: 1.5     # 1.5x mob health
+
+  meteor_shower:
+    enabled: true
+    chance: 0.10                   # 10% chance
+    duration_minutes: 15
+    meteors_per_minute: 3          # How many meteors spawn per minute
+    explosion_power: 2.0           # TNT explosion power (2.0 = normal TNT)
+    spawn_ores: true               # Spawn ore deposits at impact sites
+
+  aurora:
+    enabled: true
+    chance: 0.20                   # 20% chance
+    duration_minutes: 60
+    speed_amplifier: 2             # Speed effect level (2 = Speed II)
+    night_only: true               # Only active during night
+
+  fog:
+    enabled: true
+    chance: 0.15                   # 15% chance
+    duration_minutes: 45
+    blindness_amplifier: 0         # Blindness effect level (0 = none, 1 = Blindness I)
+
+  heatwave:
+    enabled: true
+    chance: 0.12                   # 12% chance (only in Summer)
+    duration_minutes: 40
+    damage_per_tick: 0.5           # Damage to outdoor players (0.5 HP per tick)
+```
+
+**Explanations:**
+
+**General Settings:**
+- `enabled`: Master toggle for all world events
+- `check_interval_hours`: How often the system checks if a new event should start (default: every 2 hours)
+
+**Blood Moon:**
+- `chance`: Probability of triggering when checked (0.15 = 15%)
+- `duration_minutes`: How long the event lasts
+- `mob_spawn_multiplier`: Mob spawn rate increase (2.0 = double spawns)
+- `mob_damage_multiplier`: Mob damage increase (2.0 = double damage)
+- `mob_health_multiplier`: Mob health increase (1.5 = 50% more health)
+
+**Meteor Shower:**
+- `meteors_per_minute`: Average meteor spawns per minute
+- `explosion_power`: Explosion power on impact (2.0 = normal TNT, 4.0 = double power)
+- `spawn_ores`: Whether to create ore deposits at impact sites
+
+**Aurora:**
+- `speed_amplifier`: Potion effect level (1 = Speed I, 2 = Speed II, etc.)
+- `night_only`: If true, only occurs during nighttime
+
+**Fog:**
+- `blindness_amplifier`: Optional blindness effect level (0 = disabled, 1 = Blindness I)
+
+**Heatwave:**
+- `damage_per_tick`: Damage dealt to outdoor players every 5 seconds (0.5 HP = 0.25 hearts)
+- **Note:** Only occurs during Summer season
+
+**Tips:**
+- Set `enabled: false` on individual events to disable them
+- Adjust `chance` values to make events more/less common (must sum to < 1.0 for best results)
+- Lower `check_interval_hours` for more frequent events (not recommended below 1 hour)
+- Blood Moon is most dangerous during higher difficulty cycles
 
 ---
 

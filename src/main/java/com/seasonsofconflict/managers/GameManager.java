@@ -5,6 +5,7 @@ import com.seasonsofconflict.models.GameState;
 import com.seasonsofconflict.models.PlayerData;
 import com.seasonsofconflict.models.TeamData;
 import com.seasonsofconflict.utils.MessageUtils;
+import com.seasonsofconflict.utils.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -98,15 +99,8 @@ public class GameManager {
         MessageUtils.broadcastRaw("&7Congratulations to all team members!");
         MessageUtils.broadcastRaw("&6&l========================================");
 
-        // Play victory effects for winning team
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerData data = getPlayerData(player);
-            if (data.getTeamId() == winner.getTeamId()) {
-                player.sendTitle("§6§lVICTORY!", "§aYour team has won!", 10, 70, 20);
-            } else {
-                player.sendTitle("§c§lDEFEAT", "§7" + winner.getName() + " team has won", 10, 70, 20);
-            }
-        }
+        // Send dramatic victory title announcement
+        TitleUtils.announceVictory(winner.getColoredName());
 
         // Schedule server restart or reset (optional)
         // Bukkit.getScheduler().runTaskLater(plugin, () -> {

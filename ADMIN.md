@@ -401,9 +401,44 @@ game:
 ```yaml
 seasons:
   days_per_season: 30              # Real-world days per season
+  spring:
+    crop_growth_multiplier: 1.5    # Crop growth speed (1.5 = 50% faster)
+    mob_spawn_multiplier: 0.5      # Mob spawn rate (0.5 = 50% fewer)
+  summer:
+    ore_drop_multiplier: 1.5       # Ore drop bonus (1.5 = 50% more)
+    mob_damage_multiplier: 1.5     # Mob damage (1.5 = 50% more)
+  fall:
+    harvest_multiplier: 1.5        # Harvest bonus (1.5 = 50% more)
+    all_drops_multiplier: 1.25     # All drops (1.25 = 25% more)
+  winter:
+    food_production_multiplier: 0.5  # Food production (0.5 = 50% less)
+    freezing_damage: 2.0           # Outdoor damage (2.0 HP per 30s)
 ```
 
-**Note:** Changing this mid-game will affect the next season transition calculation.
+**Seasonal Effects:**
+
+**Spring:**
+- `crop_growth_multiplier`: Makes crops grow faster (1.5 = 50% chance to skip growth stage)
+- `mob_spawn_multiplier`: Reduces hostile mob spawns (0.5 = cancel 50% of spawns)
+
+**Summer:**
+- `ore_drop_multiplier`: Bonus ore when mining (1.5 = 50% chance for double drops)
+- `mob_damage_multiplier`: Mobs deal more damage (1.5 = 50% increase)
+
+**Fall:**
+- `harvest_multiplier`: Bonus crops when harvesting (1.5 = 50% chance for double)
+- `all_drops_multiplier`: Bonus from all sources (1.25 = 25% chance for extra)
+
+**Winter:**
+- `food_production_multiplier`: Less food from crops/fishing/animals (0.5 = 50% chance items removed)
+- `freezing_damage`: Damage to outdoor players (2.0 HP = 1 heart per 30 seconds)
+
+**Tuning Tips:**
+- Higher multipliers make seasons more impactful
+- Balance risk/reward for each season
+- Winter should be harsh to encourage PvP over farming
+
+**Note:** Changing these mid-game takes effect immediately.
 
 ---
 
@@ -421,6 +456,11 @@ difficulty:
     # ... cycles 2-7
   apocalypse:
     border_shrink_per_day: 200     # Blocks to shrink daily
+    water_to_lava_chance: 0.001    # Water→lava (0.001 = 0.1%)
+    fire_spawn_chance: 0.0005      # Random fire (0.0005 = 0.05%)
+    ash_particle_density: 0.3      # Particle density (0.3 = 30%)
+    enable_dark_sky: true          # Dark crimson sky
+    enable_end_crystals: false     # End crystal spawns
 ```
 
 **Tuning tips:**
@@ -428,6 +468,22 @@ difficulty:
 - Lower `resources` = scarcity, more PvP
 - Smaller `border` = forced proximity
 - Higher `revival_cost` = more permanent deaths
+
+**Apocalypse Effects:**
+- `border_shrink_per_day`: Blocks to shrink border daily (200 = aggressive)
+- `water_to_lava_chance`: Probability water converts to lava per tick (0.001 = very slow)
+- `fire_spawn_chance`: Probability fire spawns on blocks per tick (0.0005 = rare)
+- `ash_particle_density`: Particle spawn chance around players (0.3 = moderate)
+- `enable_dark_sky`: Forces permanent midnight with red storm clouds
+- `enable_end_crystals`: Enables rare end crystal spawns for visual effect
+
+**⚠️ DANGER:** Setting water_to_lava_chance or fire_spawn_chance too high (> 0.01) can destroy the world within minutes! Use extreme caution.
+
+**Atmospheric Immersion:**
+- These effects make apocalypse mode truly apocalyptic
+- Water→lava makes water extremely valuable
+- Random fires force constant vigilance
+- Dark sky + ash creates oppressive atmosphere
 
 ---
 
@@ -593,6 +649,109 @@ messages:
 - `&f` - White
 - `&l` - Bold
 - `&r` - Reset
+
+---
+
+### World Events Configuration
+
+```yaml
+world_events:
+  enabled: true                    # Master toggle
+  check_interval_hours: 2          # Check frequency
+
+  blood_moon:
+    enabled: true
+    chance: 0.15                   # 15% chance
+    duration_minutes: 30
+    mob_spawn_multiplier: 2.0
+    mob_damage_multiplier: 2.0
+    mob_health_multiplier: 1.5
+
+  meteor_shower:
+    enabled: true
+    chance: 0.10                   # 10% chance
+    duration_minutes: 15
+    meteors_per_minute: 3
+    explosion_power: 2.0
+    spawn_ores: true               # Create ore deposits
+
+  aurora:
+    enabled: true
+    chance: 0.20                   # 20% chance
+    duration_minutes: 60
+    speed_amplifier: 2             # Speed II
+    night_only: true
+
+  fog:
+    enabled: true
+    chance: 0.15                   # 15% chance
+    duration_minutes: 45
+    blindness_amplifier: 0         # 0 = disabled
+
+  heatwave:
+    enabled: true
+    chance: 0.12                   # 12% (Summer only)
+    duration_minutes: 40
+    damage_per_tick: 0.5           # 0.5 HP per 5s
+```
+
+**World Event System:**
+
+**General Settings:**
+- `enabled`: Master toggle for entire event system
+- `check_interval_hours`: How often to check for new events (default: every 2 hours)
+
+**Event Types:**
+
+**1. Blood Moon (Most Dangerous)**
+- Multiplies mob spawns and makes them stronger
+- Forced nighttime for duration
+- Perfect for combat-oriented players
+- Most dangerous during higher difficulty cycles
+
+**2. Meteor Shower (Resource Opportunity)**
+- Random meteors fall from sky
+- Explosions can damage players/structures
+- Spawns valuable ore deposits at impact sites
+- Risk vs. reward gameplay
+
+**3. Aurora (Speed Boost)**
+- Grants Speed effect to all living players
+- Beautiful particle effects
+- Best for travel and territory captures
+- Can be restricted to nighttime only
+
+**4. Fog (Reduced Visibility)**
+- Dense cloud particles
+- Optional blindness effect
+- Creates tense atmosphere
+- Good for ambushes
+
+**5. Heatwave (Environmental Hazard)**
+- Only occurs in Summer
+- Damages players exposed to sky
+- Forces indoor gameplay
+- Adds seasonal variety
+
+**Tuning Tips:**
+- Total `chance` values should sum to < 1.0 (otherwise events too frequent)
+- Adjust `check_interval_hours` to control event frequency
+  - 1 hour = frequent events (1-3 per day)
+  - 2 hours = moderate (1-2 per day)
+  - 4 hours = rare (0-1 per day)
+- Increase `duration_minutes` for longer-lasting events
+- Balance difficulty multipliers with cycle progression
+- Disable events during testing: `enabled: false`
+
+**Event Announcements:**
+- All events display dramatic title cards
+- Chat messages announce start/end
+- Players get clear visual/audio feedback
+
+**Performance Notes:**
+- Meteor showers can cause lag if `meteors_per_minute` is too high
+- Particle-heavy events (aurora, fog) may impact low-end clients
+- Consider reducing particle density if TPS drops
 
 ---
 
@@ -847,7 +1006,7 @@ logs/latest.log
 
 ### Scheduled Tasks
 
-The plugin runs 5 background tasks:
+The plugin runs 12 background tasks:
 
 | Task | Interval | Purpose |
 |------|----------|---------|
@@ -856,6 +1015,63 @@ The plugin runs 5 background tasks:
 | DailyResetTask | 10 minutes | Check for daily quest reset |
 | ScoreboardUpdateTask | 2 seconds | Refresh player scoreboards |
 | FreezingDamageTask | 30 seconds | Apply winter freezing damage |
+| WeatherControlTask | 5 minutes | Control weather based on season |
+| SeasonalParticlesTask | 3 seconds | Spawn seasonal particle effects |
+| BossBarUpdateTask | 2 seconds | Update capture/season/border boss bars |
+| CompassUpdateTask | 5 seconds | Update compass tracking targets |
+| ApocalypseEffectsTask | 30 seconds | Apply apocalypse world effects |
+| WorldEventCheckTask | 2 hours (configurable) | Check for new random events |
+| WorldEventUpdateTask | 5 seconds | Update active event effects |
+
+**New Tasks (v1.0.0):**
+
+**WeatherControlTask:**
+- Controls world weather based on season
+- Spring: Normal cycle
+- Summer: Always sunny
+- Fall: Frequent rain
+- Winter: Clear skies
+
+**SeasonalParticlesTask:**
+- Spawns ambient particles around players
+- Spring: Cherry blossom petals
+- Summer: Heat shimmer
+- Fall: Falling leaves
+- Winter: Snowflakes + white ash
+
+**BossBarUpdateTask:**
+- Updates 3 boss bar types:
+  1. Capture progress (when near enemy beacon)
+  2. Season transition timer (when < 7 days remaining)
+  3. World border warning (apocalypse, when < 200 blocks)
+
+**CompassUpdateTask:**
+- Updates compass targets every 5 seconds
+- Tracks: Home territory, nearest enemy territory, or nearest teammate
+
+**ApocalypseEffectsTask:**
+- Applies apocalypse atmospheric effects
+- Water→lava conversion
+- Random fire spawning
+- Ash particles
+- Dark sky maintenance
+- Optional end crystals
+
+**WorldEventCheckTask:**
+- Checks if new random events should start
+- Runs every 2 hours by default (configurable)
+- Selects events based on probability
+
+**WorldEventUpdateTask:**
+- Updates active world event effects
+- Spawns meteors, applies potion effects, etc.
+- Only runs when an event is active
+
+**Performance Impact:**
+- Total overhead: ~5-10% CPU with all tasks
+- Particle tasks can impact client FPS on low-end machines
+- Apocalypse tasks increase load proportional to player count
+- Consider disabling world events if TPS < 18
 
 These run automatically. **Do not disable.**
 

@@ -73,6 +73,12 @@ difficulty:
       revival_cost: 5000
   apocalypse:
     border_shrink_per_day: 200
+    # Apocalypse world effects
+    water_to_lava_chance: 0.001  # 0.1% chance per water block per check (every 30 seconds)
+    fire_spawn_chance: 0.0005     # 0.05% chance to spawn fire per surface block per check
+    ash_particle_density: 0.3     # Chance to spawn ash particles around players (0-1)
+    enable_dark_sky: true         # Make sky dark red/orange
+    enable_end_crystals: false    # Spawn end crystals (can be laggy)
 
 # Player Settings
 player:
@@ -177,6 +183,52 @@ pvp:
 # Diamond Settings
 diamond:
   drop_chance: 0.10  # 10% of vanilla
+
+# Random World Events
+world_events:
+  enabled: true
+  check_interval_hours: 2  # How often to check for events (every 2 hours)
+
+  # Blood Moon Event
+  blood_moon:
+    enabled: true
+    chance: 0.15              # 15% chance per check
+    duration_minutes: 30      # Lasts 30 minutes
+    mob_spawn_multiplier: 2.0 # 2x mob spawns
+    mob_damage_multiplier: 2.0 # 2x mob damage
+    mob_health_multiplier: 1.5 # 1.5x mob health
+
+  # Meteor Shower Event
+  meteor_shower:
+    enabled: true
+    chance: 0.10              # 10% chance per check
+    duration_minutes: 15      # Lasts 15 minutes
+    meteors_per_minute: 3     # 3 meteors per minute
+    explosion_power: 2.0      # TNT explosion power
+    spawn_ores: true          # Meteors leave ore deposits
+
+  # Aurora Event (northern lights)
+  aurora:
+    enabled: true
+    chance: 0.20              # 20% chance per check
+    duration_minutes: 60      # Lasts 1 hour
+    speed_amplifier: 1        # Speed I effect
+    night_only: true          # Only at night
+
+  # Fog Event
+  fog:
+    enabled: true
+    chance: 0.15              # 15% chance per check
+    duration_minutes: 45      # Lasts 45 minutes
+    blindness_amplifier: 0    # Blindness level (0 = none, adds particles)
+
+  # Heatwave Event (Summer only)
+  heatwave:
+    enabled: true
+    chance: 0.12              # 12% chance per check (summer only)
+    duration_minutes: 40      # Lasts 40 minutes
+    damage_per_tick: 0.5      # 0.25 hearts every 5 seconds outdoors
+    season_requirement: SUMMER # Only in summer
 
 # Team Settings
 teams:
