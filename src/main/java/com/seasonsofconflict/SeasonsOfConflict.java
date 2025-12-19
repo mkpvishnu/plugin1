@@ -22,6 +22,10 @@ public class SeasonsOfConflict extends JavaPlugin {
     private HealthManager healthManager;
     private CombatManager combatManager;
     private DifficultyManager difficultyManager;
+    private BossBarManager bossBarManager;
+
+    // Listeners
+    private CompassTrackingListener compassTrackingListener;
 
     @Override
     public void onEnable() {
@@ -51,6 +55,11 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Clean up boss bars
+        if (bossBarManager != null) {
+            bossBarManager.cleanup();
+        }
+
         // Save all data
         if (dataManager != null) {
             dataManager.saveAll();
@@ -72,6 +81,10 @@ public class SeasonsOfConflict extends JavaPlugin {
         healthManager = new HealthManager(this);
         combatManager = new CombatManager(this);
         difficultyManager = new DifficultyManager(this);
+        bossBarManager = new BossBarManager(this);
+
+        // Initialize listeners that need to be accessed
+        compassTrackingListener = new CompassTrackingListener(this);
 
         // Load data
         teamManager.loadTeams();
@@ -93,6 +106,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CropGrowthListener(this), this);
         getServer().getPluginManager().registerEvents(new MobSpawnListener(this), this);
         getServer().getPluginManager().registerEvents(new FishingListener(this), this);
+        // Compass tracking listener
+        getServer().getPluginManager().registerEvents(compassTrackingListener, this);
     }
 
     private void registerCommands() {
@@ -104,6 +119,7 @@ public class SeasonsOfConflict extends JavaPlugin {
         getCommand("stats").setExecutor(new StatsCommand(this));
         getCommand("leaderboard").setExecutor(new LeaderboardCommand(this));
         getCommand("soc").setExecutor(new AdminCommand(this));
+        getCommand("compass").setExecutor(new CompassCommand(this));
     }
 
     private void startTasks() {
@@ -127,6 +143,12 @@ public class SeasonsOfConflict extends JavaPlugin {
 
         // Seasonal particle effects - runs every 3 seconds
         new SeasonalParticlesTask(this).runTaskTimer(this, 0L, 60L);
+
+        // Boss bar updates - runs every 2 seconds
+        new BossBarUpdateTask(this).runTaskTimer(this, 0L, 40L);
+
+        // Compass tracking updates - runs every 5 seconds
+        new CompassUpdateTask(this).runTaskTimer(this, 0L, 100L);
     }
 
     // Getters
@@ -168,5 +190,13 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     public DifficultyManager getDifficultyManager() {
         return difficultyManager;
+    }
+
+    public BossBarManager getBossBarManager() {
+        return bossBarManager;
+    }
+
+    public CompassTrackingListener getCompassTrackingListener() {
+        return compassTrackingListener;
     }
 }

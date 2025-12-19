@@ -44,6 +44,11 @@ commands:
     usage: /soc <subcommand>
     permission: soc.admin
 
+  compass:
+    description: Get a tracking compass
+    usage: /compass
+    aliases: [track]
+
 permissions:
   soc.admin:
     description: Allows use of admin commands
