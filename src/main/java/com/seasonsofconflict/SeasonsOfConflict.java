@@ -149,6 +149,9 @@ public class SeasonsOfConflict extends JavaPlugin {
 
         // Compass tracking updates - runs every 5 seconds
         new CompassUpdateTask(this).runTaskTimer(this, 0L, 100L);
+
+        // Apocalypse world effects - runs every 30 seconds
+        new ApocalypseEffectsTask(this).runTaskTimer(this, 0L, 20L * 30);
     }
 
     // Getters

@@ -73,6 +73,12 @@ difficulty:
       revival_cost: 5000
   apocalypse:
     border_shrink_per_day: 200
+    # Apocalypse world effects
+    water_to_lava_chance: 0.001  # 0.1% chance per water block per check (every 30 seconds)
+    fire_spawn_chance: 0.0005     # 0.05% chance to spawn fire per surface block per check
+    ash_particle_density: 0.3     # Chance to spawn ash particles around players (0-1)
+    enable_dark_sky: true         # Make sky dark red/orange
+    enable_end_crystals: false    # Spawn end crystals (can be laggy)
 
 # Player Settings
 player:
