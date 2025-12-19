@@ -36,6 +36,7 @@ All admin commands require the `soc.admin` permission (default: OP only).
 /soc territories               - View detailed territory status
 /soc teams                     - View detailed team status
 /soc gameinfo                  - View current game state
+/soc event <trigger|stop|list|info> - Manage world events
 ```
 
 ---
@@ -370,6 +371,161 @@ Active Teams: 3
 - Quick status check
 - Troubleshooting
 - Monitoring game progression
+
+---
+
+### World Event Management
+
+#### `/soc event <subcommand>`
+
+Manage world events manually for testing or special occasions.
+
+**Subcommands:**
+```
+/soc event trigger <event_type>     - Manually start an event
+/soc event stop                     - End current event immediately
+/soc event list                     - List all available events
+/soc event info <event_type>        - Show detailed event configuration
+```
+
+---
+
+#### `/soc event trigger <event_type>`
+
+Manually start a world event.
+
+**Syntax:**
+```
+/soc event trigger <blood_moon|meteor_shower|aurora|fog|heatwave>
+```
+
+**Examples:**
+```
+/soc event trigger blood_moon
+/soc event trigger meteor_shower
+/soc event trigger aurora
+```
+
+**What it does:**
+- Immediately starts the specified event
+- Uses duration from config.yml
+- Announces to all players with title card
+- Only works if no event is currently active
+- Checks if event is enabled in config
+
+**Restrictions:**
+- Cannot trigger if another event is active (use `/soc event stop` first)
+- Event must be enabled in config.yml
+- World events system must be enabled (`world_events.enabled: true`)
+
+**Use cases:**
+- Testing event mechanics
+- Special events for players
+- Demonstrations
+- Birthday celebrations (trigger Aurora for speed boost!)
+
+---
+
+#### `/soc event stop`
+
+Immediately end the currently active event.
+
+**Syntax:**
+```
+/soc event stop
+```
+
+**What it does:**
+- Ends current event instantly
+- Removes all event effects
+- Announces event end to players
+- Logs admin action
+
+**Use cases:**
+- Event causing lag
+- Event triggered by mistake
+- Need to start different event
+- Emergency stop
+
+---
+
+#### `/soc event list`
+
+List all available world event types.
+
+**Output:**
+```
+=== Available World Events ===
+1. blood_moon - 2x mobs, increased danger
+2. meteor_shower - Falling meteors with ore deposits
+3. aurora - Speed boost for all players
+4. fog - Reduced visibility
+5. heatwave - Outdoor damage (Summer only)
+```
+
+---
+
+#### `/soc event info <event_type>`
+
+Show detailed configuration for a specific event.
+
+**Syntax:**
+```
+/soc event info <event_type>
+```
+
+**Examples:**
+```
+/soc event info blood_moon
+/soc event info meteor_shower
+```
+
+**Output includes:**
+- Enabled status
+- Trigger chance (for automatic events)
+- Duration in minutes
+- All effect multipliers
+- Special requirements
+
+**Example output:**
+```
+=== BLOOD MOON ===
+Enabled: Yes
+Chance: 15%
+Duration: 30 minutes
+
+Effects:
+• Mob Spawns: 2.0x
+• Mob Damage: 2.0x
+• Mob Health: 1.5x
+• Forces nighttime
+```
+
+**Use cases:**
+- Check event settings without editing config
+- Verify event balance
+- Share event info with players
+
+---
+
+### Event Management Tips
+
+**Testing Events:**
+1. Disable automatic events: `world_events.enabled: false` in config
+2. Use `/soc event trigger <type>` to test individually
+3. Check for lag/performance issues
+4. Adjust config values as needed
+5. Re-enable automatic events
+
+**Event Scheduling:**
+- Cannot schedule events (automatic only)
+- To guarantee an event, trigger manually before expected playtime
+- Events triggered manually use config duration
+
+**Common Issues:**
+- "Event already active": Use `/soc event stop` first
+- "Unknown event type": Check spelling (use underscores, e.g., `blood_moon`)
+- "Event disabled": Enable in config.yml
 
 ---
 

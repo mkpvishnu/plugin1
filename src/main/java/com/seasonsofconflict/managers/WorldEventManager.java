@@ -361,4 +361,92 @@ public class WorldEventManager {
     public boolean isEventActive(EventType type) {
         return activeEvent != null && activeEvent.type == type;
     }
+
+    // ==================== ADMIN HELPER METHODS ====================
+
+    /**
+     * Check if any event is currently active
+     */
+    public boolean hasActiveEvent() {
+        return activeEvent != null && System.currentTimeMillis() < eventEndTime;
+    }
+
+    /**
+     * Get the type of the currently active event
+     */
+    public String getActiveEventType() {
+        if (activeEvent == null) {
+            return "none";
+        }
+        return activeEvent.type.name().toLowerCase();
+    }
+
+    /**
+     * Manually trigger a specific event (admin command)
+     * @param eventTypeName The event type name (e.g., "blood_moon")
+     * @return true if successfully triggered, false if unknown type
+     */
+    public boolean triggerEvent(String eventTypeName) {
+        EventType type;
+
+        try {
+            type = EventType.valueOf(eventTypeName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false; // Unknown event type
+        }
+
+        // Check if event is enabled in config
+        if (!plugin.getConfig().getBoolean("world_events." + eventTypeName + ".enabled", true)) {
+            return false; // Event disabled
+        }
+
+        // Start the event
+        startEvent(type);
+        return true;
+    }
+
+    /**
+     * Manually end the currently active event (admin command)
+     */
+    public void endCurrentEvent() {
+        if (activeEvent == null) {
+            return;
+        }
+
+        EventType type = activeEvent.type;
+
+        // End the event
+        activeEvent = null;
+        eventEndTime = 0;
+
+        // Announce end
+        TitleUtils.broadcastTitle(
+            "&a&lEVENT ENDED",
+            "&7" + formatEventName(type) + " has ended",
+            10, 40, 20
+        );
+
+        MessageUtils.broadcast("&7The " + formatEventName(type) + " event has ended");
+        plugin.getLogger().info("World event ended (admin): " + type.name());
+    }
+
+    /**
+     * Format event name for display
+     */
+    private String formatEventName(EventType type) {
+        switch (type) {
+            case BLOOD_MOON:
+                return "Blood Moon";
+            case METEOR_SHOWER:
+                return "Meteor Shower";
+            case AURORA:
+                return "Aurora";
+            case FOG:
+                return "Fog";
+            case HEATWAVE:
+                return "Heatwave";
+            default:
+                return type.name();
+        }
+    }
 }
