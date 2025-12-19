@@ -5,6 +5,7 @@ import com.seasonsofconflict.models.GameState;
 import com.seasonsofconflict.models.PlayerData;
 import com.seasonsofconflict.models.Season;
 import com.seasonsofconflict.utils.MessageUtils;
+import com.seasonsofconflict.utils.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -39,6 +40,9 @@ public class SeasonManager {
         MessageUtils.broadcast("&e&lSEASON CHANGE: " + seasonName);
         MessageUtils.broadcast("&7" + getSeasonalEffect(season));
         MessageUtils.broadcast("&6&l========================================");
+
+        // Send dramatic title announcement
+        TitleUtils.announceSeasonChange(seasonName, getSeasonalEffect(season));
 
         plugin.getLogger().info("Season changed to " + season.name());
     }

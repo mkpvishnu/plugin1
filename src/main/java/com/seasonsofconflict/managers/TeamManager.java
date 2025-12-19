@@ -5,6 +5,7 @@ import com.seasonsofconflict.models.PlayerData;
 import com.seasonsofconflict.models.TeamData;
 import com.seasonsofconflict.models.TerritoryData;
 import com.seasonsofconflict.utils.MessageUtils;
+import com.seasonsofconflict.utils.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -211,7 +212,18 @@ public class TeamManager {
         message = message.replace("{team}", team.getColoredName());
         MessageUtils.broadcastRaw(message);
 
-        plugin.getLogger().info("Team " + team.getName() + " has been eliminated!");
+        // Count remaining teams
+        int remainingTeams = 0;
+        for (TeamData t : teams.values()) {
+            if (!t.isEliminated()) {
+                remainingTeams++;
+            }
+        }
+
+        // Send dramatic title announcement
+        TitleUtils.announceTeamElimination(team.getColoredName(), remainingTeams);
+
+        plugin.getLogger().info("Team " + team.getName() + " has been eliminated! " + remainingTeams + " teams remain.");
 
         // Check win condition
         plugin.getGameManager().checkWinCondition();

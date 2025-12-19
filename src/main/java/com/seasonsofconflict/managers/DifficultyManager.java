@@ -3,6 +3,7 @@ package com.seasonsofconflict.managers;
 import com.seasonsofconflict.SeasonsOfConflict;
 import com.seasonsofconflict.models.GameState;
 import com.seasonsofconflict.utils.MessageUtils;
+import com.seasonsofconflict.utils.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
@@ -77,6 +78,9 @@ public class DifficultyManager {
         MessageUtils.broadcast("&7The world grows more dangerous...");
         MessageUtils.broadcast("&6&l========================================");
 
+        // Send dramatic title announcement
+        TitleUtils.announceCycleAdvance(newCycle, "The world grows more dangerous...");
+
         applyCycleScaling(newCycle);
 
         // Check for apocalypse
@@ -111,10 +115,8 @@ public class DifficultyManager {
         MessageUtils.broadcastRaw("&c&lSURVIVE AT ALL COSTS");
         MessageUtils.broadcastRaw("&4&l========================================");
 
-        // Send title to all players
-        for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {
-            player.sendTitle("§4§lAPOCALYPSE", "§cThe world is ending!", 20, 100, 20);
-        }
+        // Send dramatic title to all players
+        TitleUtils.announceApocalypse();
 
         plugin.getLogger().warning("APOCALYPSE MODE ACTIVATED!");
     }

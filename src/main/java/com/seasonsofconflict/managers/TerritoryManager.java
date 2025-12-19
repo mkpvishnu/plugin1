@@ -6,6 +6,7 @@ import com.seasonsofconflict.models.Season;
 import com.seasonsofconflict.models.TeamData;
 import com.seasonsofconflict.models.TerritoryData;
 import com.seasonsofconflict.utils.MessageUtils;
+import com.seasonsofconflict.utils.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -316,6 +317,9 @@ public class TerritoryManager {
         message = message.replace("{team}", capturingTeam.getColoredName())
                         .replace("{territory}", territory.getName());
         MessageUtils.broadcastRaw(message);
+
+        // Send title announcement
+        TitleUtils.announceTerritoryCapture(capturingTeam.getColoredName(), territory.getName());
 
         plugin.getLogger().info("Team " + capturingTeam.getName() + " captured " + territory.getName());
     }
