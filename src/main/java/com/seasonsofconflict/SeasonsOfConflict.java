@@ -23,6 +23,7 @@ public class SeasonsOfConflict extends JavaPlugin {
     private CombatManager combatManager;
     private DifficultyManager difficultyManager;
     private BossBarManager bossBarManager;
+    private WorldEventManager worldEventManager;
 
     // Listeners
     private CompassTrackingListener compassTrackingListener;
@@ -82,6 +83,7 @@ public class SeasonsOfConflict extends JavaPlugin {
         combatManager = new CombatManager(this);
         difficultyManager = new DifficultyManager(this);
         bossBarManager = new BossBarManager(this);
+        worldEventManager = new WorldEventManager(this);
 
         // Initialize listeners that need to be accessed
         compassTrackingListener = new CompassTrackingListener(this);
@@ -152,6 +154,13 @@ public class SeasonsOfConflict extends JavaPlugin {
 
         // Apocalypse world effects - runs every 30 seconds
         new ApocalypseEffectsTask(this).runTaskTimer(this, 0L, 20L * 30);
+
+        // World event check - runs every 2 hours (configurable)
+        long checkInterval = getConfig().getLong("world_events.check_interval_hours", 2) * 60 * 60 * 20L;
+        new WorldEventCheckTask(this).runTaskTimer(this, 0L, checkInterval);
+
+        // World event updates - runs every 5 seconds
+        new WorldEventUpdateTask(this).runTaskTimer(this, 0L, 100L);
     }
 
     // Getters
@@ -201,5 +210,9 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     public CompassTrackingListener getCompassTrackingListener() {
         return compassTrackingListener;
+    }
+
+    public WorldEventManager getWorldEventManager() {
+        return worldEventManager;
     }
 }
