@@ -121,6 +121,12 @@ public class SeasonsOfConflict extends JavaPlugin {
 
         // Winter freezing damage task - runs every 30 seconds
         new FreezingDamageTask(this).runTaskTimer(this, 0L, 20L * 30);
+
+        // Weather control task - runs every 5 minutes
+        new WeatherControlTask(this).runTaskTimer(this, 0L, 20L * 60 * 5);
+
+        // Seasonal particle effects - runs every 3 seconds
+        new SeasonalParticlesTask(this).runTaskTimer(this, 0L, 60L);
     }
 
     // Getters
