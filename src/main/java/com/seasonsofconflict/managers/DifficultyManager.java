@@ -138,12 +138,38 @@ public class DifficultyManager {
         int applyCycle = Math.min(currentCycle, 7);
         applyCycleScaling(applyCycle);
 
+        // Restore normal world state (fix stuck night/rain)
+        restoreNormalWorldState();
+
         plugin.getGameManager().saveGameState();
 
         MessageUtils.broadcast("&a&lAPOCALYPSE MODE DISABLED");
         MessageUtils.broadcast("&7Normal difficulty scaling restored.");
 
         plugin.getLogger().info("APOCALYPSE MODE DISABLED");
+    }
+
+    /**
+     * Restore normal world state after apocalypse
+     * - Re-enable daylight cycle
+     * - Clear storms
+     * - Reset weather
+     */
+    private void restoreNormalWorldState() {
+        World world = plugin.getServer().getWorld(plugin.getConfig().getString("game.world_name", "world"));
+        if (world == null) return;
+
+        // Re-enable daylight cycle
+        world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, true);
+
+        // Clear storm
+        world.setStorm(false);
+        world.setThundering(false);
+
+        // Reset weather duration to normal
+        world.setWeatherDuration(0); // Will choose new random duration
+
+        plugin.getLogger().info("Restored normal world state (daylight cycle, weather)");
     }
 
     /**
