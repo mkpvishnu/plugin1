@@ -121,10 +121,15 @@ Bonuses only apply when **ALL** conditions are met:
 - Hold the position for **5 minutes (300 seconds)**
 - Enemy team members within **50 blocks** will pause capture progress
 
+**Beacon Protection:**
+- Territory beacons **cannot be destroyed** - they are indestructible
+- Prevents griefing and ensures capture mechanics work properly
+- You must capture territories through the proper capture system
+
 **Rewards:**
 - Your team gains control of the territory
 - **+100 team points** immediately
-- **Steal 25%** of the enemy team's points
+- **Steal 25%** of the enemy team's points (neutral territories don't steal points)
 - Territory bonuses now apply to your team
 
 **Commands:**
@@ -146,6 +151,10 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 - ✅ **Fewer Mobs** - 50% reduced hostile spawn rates (configurable in config.yml)
 - 📍 **Best Territories:** Dark Forest (wood), Savanna Plains (crops)
 
+**Atmosphere:**
+- 🌤️ **Weather:** Normal weather cycle (mix of clear and rainy days)
+- 🌸 **Visual:** Cherry blossom petals gently falling around players
+
 **Strategy:** Focus on base building, farming, and stockpiling resources while healing is available.
 
 ---
@@ -157,6 +166,10 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 - ⚠️ **Mob Damage +50%** - Mobs hit 1.5x harder (configurable in config.yml)
 - ✅ **Ore Drops +50%** - Extra ore from mining (configurable in config.yml)
 - 📍 **Best Territories:** Tundra Peaks (ore mining)
+
+**Atmosphere:**
+- ☀️ **Weather:** Always sunny, no rain
+- 🔥 **Visual:** Heat shimmer particles rising from the ground
 
 **Strategy:** Mine aggressively for resources, avoid unnecessary combat, fortify defenses.
 
@@ -170,6 +183,10 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 - ✅ **All Drops +25%** - Increased drops from blocks, mobs, and fishing (configurable in config.yml)
 - ✅ **Resource Abundance** - Best time to gather
 - 📍 **Best Territories:** Savanna Plains (crops), Ocean Coast (fishing)
+
+**Atmosphere:**
+- 🌧️ **Weather:** Frequent rain (60-70% of the time)
+- 🍂 **Visual:** Falling leaves swirling around players
 
 **Strategy:** Gather as much food and resources as possible before Winter. Complete team quests.
 
@@ -185,6 +202,10 @@ The world cycles through **4 seasons**, each lasting **30 real-world days**. Sea
 - ❌ **Crops Disabled** - CROP territory bonuses don't work
 - ✅ **Heat Sources** - Stay within 5 blocks of heat sources to avoid freezing
 - 📍 **Best Territories:** Tundra Peaks (ore), Contested Badlands (XP)
+
+**Atmosphere:**
+- ❄️ **Weather:** Clear skies (cold and desolate)
+- 🌨️ **Visual:** Constant snowflakes and white ash falling (even in non-snow biomes)
 
 **Heat Sources (prevent freezing):**
 - Campfire / Soul Campfire

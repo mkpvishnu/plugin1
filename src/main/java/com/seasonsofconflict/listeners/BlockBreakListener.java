@@ -4,6 +4,9 @@ import com.seasonsofconflict.SeasonsOfConflict;
 import com.seasonsofconflict.models.BonusType;
 import com.seasonsofconflict.models.PlayerData;
 import com.seasonsofconflict.models.Season;
+import com.seasonsofconflict.models.TerritoryData;
+import com.seasonsofconflict.utils.MessageUtils;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -25,6 +28,17 @@ public class BlockBreakListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         Material type = block.getType();
+        Location blockLoc = block.getLocation();
+
+        // Protect beacon blocks at territory coordinates
+        if (type == Material.BEACON) {
+            if (isBeaconBlock(blockLoc)) {
+                event.setCancelled(true);
+                MessageUtils.sendMessage(player, "&cYou cannot break territory beacons!");
+                return;
+            }
+        }
+
         PlayerData data = plugin.getGameManager().getPlayerData(player);
         Season season = plugin.getGameManager().getGameState().getCurrentSeason();
 
@@ -120,5 +134,22 @@ public class BlockBreakListener implements Listener {
                type == Material.SWEET_BERRY_BUSH ||
                type == Material.COCOA ||
                type == Material.NETHER_WART;
+    }
+
+    /**
+     * Check if a location matches any territory beacon coordinates
+     */
+    private boolean isBeaconBlock(Location loc) {
+        for (int territoryId = 1; territoryId <= 5; territoryId++) {
+            TerritoryData territory = plugin.getTerritoryManager().getTerritory(territoryId);
+            if (territory == null) continue;
+
+            if (loc.getBlockX() == territory.getBeaconX() &&
+                loc.getBlockY() == territory.getBeaconY() &&
+                loc.getBlockZ() == territory.getBeaconZ()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
