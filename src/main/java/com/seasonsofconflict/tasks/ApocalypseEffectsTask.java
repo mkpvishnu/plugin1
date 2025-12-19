@@ -77,6 +77,7 @@ public class ApocalypseEffectsTask extends BukkitRunnable {
      */
     private void applyApocalypseEffectsAroundPlayer(Player player) {
         Location playerLoc = player.getLocation();
+        World world = playerLoc.getWorld();
         int radius = 60;
 
         // Spawn ash particles around player
@@ -90,7 +91,7 @@ public class ApocalypseEffectsTask extends BukkitRunnable {
 
             y = Math.max(world.getMinHeight(), Math.min(world.getMaxHeight() - 1, y));
 
-            Block block = playerLoc.getWorld().getBlockAt(x, y, z);
+            Block block = world.getBlockAt(x, y, z);
 
             // Water to lava conversion
             convertWaterToLava(block);
