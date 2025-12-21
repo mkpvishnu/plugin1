@@ -41,6 +41,7 @@ public class AdminCommand implements CommandExecutor {
             MessageUtils.sendMessage(sender, "&e/soc territories &7- View territory status");
             MessageUtils.sendMessage(sender, "&e/soc teams &7- View team status");
             MessageUtils.sendMessage(sender, "&e/soc gameinfo &7- View game state");
+            MessageUtils.sendMessage(sender, "&e/soc event <trigger|stop|list|info> &7- Manage world events");
             return true;
         }
 
@@ -301,11 +302,175 @@ public class AdminCommand implements CommandExecutor {
                 MessageUtils.sendMessage(sender, "&eActive Teams: &f" + plugin.getTeamManager().getRemainingTeamCount());
                 break;
 
+            case "event":
+                handleEventCommand(sender, args);
+                break;
+
             default:
                 MessageUtils.sendError(sender, "Unknown subcommand: " + args[0]);
         }
 
         return true;
+    }
+
+    /**
+     * Handle event subcommands
+     */
+    private void handleEventCommand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            MessageUtils.sendMessage(sender, "&6=== World Event Commands ===");
+            MessageUtils.sendMessage(sender, "&e/soc event trigger <type> &7- Manually start an event");
+            MessageUtils.sendMessage(sender, "&e/soc event stop &7- End current event");
+            MessageUtils.sendMessage(sender, "&e/soc event list &7- List all event types");
+            MessageUtils.sendMessage(sender, "&e/soc event info <type> &7- Show event details");
+            return;
+        }
+
+        switch (args[1].toLowerCase()) {
+            case "trigger":
+            case "start":
+                if (args.length < 3) {
+                    MessageUtils.sendError(sender, "Usage: /soc event trigger <event_type>");
+                    MessageUtils.sendMessage(sender, "&7Types: blood_moon, meteor_shower, aurora, fog, heatwave");
+                    return;
+                }
+
+                String eventType = args[2].toLowerCase();
+
+                // Check if events are enabled
+                if (!plugin.getConfig().getBoolean("world_events.enabled", true)) {
+                    MessageUtils.sendError(sender, "World events are disabled in config!");
+                    return;
+                }
+
+                // Check if there's already an active event
+                if (plugin.getWorldEventManager().hasActiveEvent()) {
+                    String activeEvent = plugin.getWorldEventManager().getActiveEventType();
+                    MessageUtils.sendError(sender, "An event is already active: " + activeEvent);
+                    MessageUtils.sendMessage(sender, "&7Use '/soc event stop' first");
+                    return;
+                }
+
+                // Trigger the event
+                boolean success = plugin.getWorldEventManager().triggerEvent(eventType);
+
+                if (success) {
+                    MessageUtils.sendSuccess(sender, "Triggered event: &6" + eventType.replace("_", " ").toUpperCase());
+                    plugin.getLogger().info(sender.getName() + " triggered world event: " + eventType);
+                } else {
+                    MessageUtils.sendError(sender, "Unknown event type: " + eventType);
+                    MessageUtils.sendMessage(sender, "&7Available: blood_moon, meteor_shower, aurora, fog, heatwave");
+                }
+                break;
+
+            case "stop":
+            case "end":
+                if (!plugin.getWorldEventManager().hasActiveEvent()) {
+                    MessageUtils.sendError(sender, "No event is currently active!");
+                    return;
+                }
+
+                String stoppedEvent = plugin.getWorldEventManager().getActiveEventType();
+                plugin.getWorldEventManager().endCurrentEvent();
+
+                MessageUtils.sendSuccess(sender, "Stopped event: &6" + stoppedEvent.replace("_", " ").toUpperCase());
+                plugin.getLogger().info(sender.getName() + " stopped world event: " + stoppedEvent);
+                break;
+
+            case "list":
+                MessageUtils.sendMessage(sender, "&6&l=== Available World Events ===");
+                MessageUtils.sendMessage(sender, "&e1. blood_moon &7- 2x mobs, increased danger");
+                MessageUtils.sendMessage(sender, "&e2. meteor_shower &7- Falling meteors with ore deposits");
+                MessageUtils.sendMessage(sender, "&e3. aurora &7- Speed boost for all players");
+                MessageUtils.sendMessage(sender, "&e4. fog &7- Reduced visibility");
+                MessageUtils.sendMessage(sender, "&e5. heatwave &7- Outdoor damage (Summer only)");
+                MessageUtils.sendMessage(sender, "");
+                MessageUtils.sendMessage(sender, "&7Use '/soc event trigger <type>' to start");
+                break;
+
+            case "info":
+                if (args.length < 3) {
+                    MessageUtils.sendError(sender, "Usage: /soc event info <event_type>");
+                    return;
+                }
+
+                String infoType = args[2].toLowerCase();
+                showEventInfo(sender, infoType);
+                break;
+
+            default:
+                MessageUtils.sendError(sender, "Unknown event subcommand: " + args[1]);
+                MessageUtils.sendMessage(sender, "&7Use: trigger, stop, list, info");
+        }
+    }
+
+    /**
+     * Show detailed info about an event type
+     */
+    private void showEventInfo(CommandSender sender, String eventType) {
+        String basePath = "world_events." + eventType + ".";
+
+        if (!plugin.getConfig().contains(basePath + "enabled")) {
+            MessageUtils.sendError(sender, "Unknown event type: " + eventType);
+            return;
+        }
+
+        boolean enabled = plugin.getConfig().getBoolean(basePath + "enabled", true);
+        double chance = plugin.getConfig().getDouble(basePath + "chance", 0);
+        int duration = plugin.getConfig().getInt(basePath + "duration_minutes", 0);
+
+        MessageUtils.sendMessage(sender, "&6&l=== " + eventType.replace("_", " ").toUpperCase() + " ===");
+        MessageUtils.sendMessage(sender, "&eEnabled: " + (enabled ? "&aYes" : "&cNo"));
+        MessageUtils.sendMessage(sender, "&eChance: &f" + (int)(chance * 100) + "%");
+        MessageUtils.sendMessage(sender, "&eDuration: &f" + duration + " minutes");
+        MessageUtils.sendMessage(sender, "");
+
+        switch (eventType) {
+            case "blood_moon":
+                double mobSpawn = plugin.getConfig().getDouble(basePath + "mob_spawn_multiplier", 2.0);
+                double mobDamage = plugin.getConfig().getDouble(basePath + "mob_damage_multiplier", 2.0);
+                double mobHealth = plugin.getConfig().getDouble(basePath + "mob_health_multiplier", 1.5);
+                MessageUtils.sendMessage(sender, "&eEffects:");
+                MessageUtils.sendMessage(sender, "&7• Mob Spawns: &f" + mobSpawn + "x");
+                MessageUtils.sendMessage(sender, "&7• Mob Damage: &f" + mobDamage + "x");
+                MessageUtils.sendMessage(sender, "&7• Mob Health: &f" + mobHealth + "x");
+                MessageUtils.sendMessage(sender, "&7• Forces nighttime");
+                break;
+
+            case "meteor_shower":
+                int meteorsPerMin = plugin.getConfig().getInt(basePath + "meteors_per_minute", 3);
+                double explosionPower = plugin.getConfig().getDouble(basePath + "explosion_power", 2.0);
+                boolean spawnOres = plugin.getConfig().getBoolean(basePath + "spawn_ores", true);
+                MessageUtils.sendMessage(sender, "&eEffects:");
+                MessageUtils.sendMessage(sender, "&7• Meteors/min: &f" + meteorsPerMin);
+                MessageUtils.sendMessage(sender, "&7• Explosion Power: &f" + explosionPower);
+                MessageUtils.sendMessage(sender, "&7• Spawn Ores: " + (spawnOres ? "&aYes" : "&cNo"));
+                break;
+
+            case "aurora":
+                int speedLevel = plugin.getConfig().getInt(basePath + "speed_amplifier", 2);
+                boolean nightOnly = plugin.getConfig().getBoolean(basePath + "night_only", true);
+                MessageUtils.sendMessage(sender, "&eEffects:");
+                MessageUtils.sendMessage(sender, "&7• Speed Level: &fII (" + speedLevel + ")");
+                MessageUtils.sendMessage(sender, "&7• Night Only: " + (nightOnly ? "&aYes" : "&cNo"));
+                MessageUtils.sendMessage(sender, "&7• Northern lights particles");
+                break;
+
+            case "fog":
+                int blindnessLevel = plugin.getConfig().getInt(basePath + "blindness_amplifier", 0);
+                MessageUtils.sendMessage(sender, "&eEffects:");
+                MessageUtils.sendMessage(sender, "&7• Cloud particles");
+                MessageUtils.sendMessage(sender, "&7• Blindness: " + (blindnessLevel > 0 ? "&fLevel " + blindnessLevel : "&cDisabled"));
+                break;
+
+            case "heatwave":
+                double damage = plugin.getConfig().getDouble(basePath + "damage_per_tick", 0.5);
+                MessageUtils.sendMessage(sender, "&eEffects:");
+                MessageUtils.sendMessage(sender, "&7• Outdoor Damage: &f" + damage + " HP per 5s");
+                MessageUtils.sendMessage(sender, "&7• Summer Only: &aYes");
+                MessageUtils.sendMessage(sender, "&7• Flame particles");
+                break;
+        }
     }
 
     /**
