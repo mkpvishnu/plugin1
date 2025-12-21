@@ -52,7 +52,7 @@ public class SkillGUIListener implements Listener {
         }
 
         // Handle the click
-        plugin.getSkillTreeGUI().handleClick(player, event.getSlot(), title);
+        plugin.getSkillTreeGUI().handleClick(player, inv, event.getSlot(), event.getCurrentItem());
     }
 
     /**
