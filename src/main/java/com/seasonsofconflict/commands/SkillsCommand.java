@@ -38,12 +38,20 @@ public class SkillsCommand implements CommandExecutor {
                 case "stats" -> showStats(player);
                 case "xp" -> showXP(player);
                 case "info" -> showInfo(player);
-                default -> showStats(player); // Default to stats
+                default -> openGUI(player); // Default to GUI
             };
         }
 
-        // No args - show stats
-        return showStats(player);
+        // No args - open GUI
+        return openGUI(player);
+    }
+
+    /**
+     * Open the skill tree GUI
+     */
+    private boolean openGUI(Player player) {
+        plugin.getSkillTreeGUI().openMainMenu(player);
+        return true;
     }
 
     /**
@@ -175,8 +183,10 @@ public class SkillsCommand implements CommandExecutor {
 
         MessageUtils.sendMessage(player, "");
 
-        MessageUtils.sendMessage(player, "&a&lGUI coming in Phase 3!");
-        MessageUtils.sendMessage(player, "&7For now, earn XP to prepare for the skill trees.");
+        MessageUtils.sendMessage(player, "&e&lCommands:");
+        MessageUtils.sendMessage(player, "&7  /skills &f- Open skill tree GUI");
+        MessageUtils.sendMessage(player, "&7  /skills stats &f- View text stats");
+        MessageUtils.sendMessage(player, "&7  /skills xp &f- View XP sources");
 
         MessageUtils.sendMessage(player, "&6&l==================================");
 

@@ -26,6 +26,7 @@ public class SeasonsOfConflict extends JavaPlugin {
     private WorldEventManager worldEventManager;
     private XPManager xpManager;
     private SkillManager skillManager;
+    private SkillTreeGUI skillTreeGUI;
 
     // Listeners
     private CompassTrackingListener compassTrackingListener;
@@ -96,6 +97,7 @@ public class SeasonsOfConflict extends JavaPlugin {
         worldEventManager = new WorldEventManager(this);
         xpManager = new XPManager(this);
         skillManager = new SkillManager(this);
+        skillTreeGUI = new SkillTreeGUI(this);
 
         // Initialize listeners that need to be accessed
         compassTrackingListener = new CompassTrackingListener(this);
@@ -124,6 +126,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         getServer().getPluginManager().registerEvents(compassTrackingListener, this);
         // XP gain listener
         getServer().getPluginManager().registerEvents(new XPGainListener(this), this);
+        // Skill GUI listener
+        getServer().getPluginManager().registerEvents(new SkillGUIListener(this), this);
     }
 
     private void registerCommands() {
@@ -237,5 +241,9 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    public SkillTreeGUI getSkillTreeGUI() {
+        return skillTreeGUI;
     }
 }
