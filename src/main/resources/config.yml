@@ -257,3 +257,48 @@ messages:
   cycle_advance: "&cCycle {cycle} begins. The world grows harsher..."
   apocalypse_start: "&4=== APOCALYPSE MODE ACTIVATED ==="
   game_end: "&6{team} WINS! Congratulations!"
+
+# Skills System (Phase 1 - Core System)
+skills:
+  enabled: true
+
+  # XP System
+  xp_per_skill_point: 500
+  max_skill_points: 100
+  max_ultimate_unlocks: 2
+
+  # Reset Costs (team points)
+  reset_costs:
+    single_tree: 500
+    all_trees: 1000
+
+  # Reset Behavior
+  reset_on_cycle: true    # auto-reset when cycle advances
+  reset_on_death: false   # keep skills on death
+
+  # XP Sources
+  xp_sources:
+    quest_completion:
+      easy: 100
+      medium: 250
+      hard: 500
+    player_kill: 200
+    mob_kill:
+      zombie: 10
+      skeleton: 15
+      creeper: 20
+      spider: 12
+      enderman: 50
+      wither_skeleton: 100
+    gathering:
+      stone: 1
+      coal: 2
+      iron: 3
+      gold: 5
+      diamond: 10
+      log: 2
+      wheat: 1
+
+  # Multipliers
+  territory_xp_bonus: 1.0        # Extra XP in XP territory (future)
+  blood_moon_xp_multiplier: 2.0  # 2x XP during blood moon (future)

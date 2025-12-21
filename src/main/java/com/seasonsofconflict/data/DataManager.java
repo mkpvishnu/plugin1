@@ -102,6 +102,72 @@ public class DataManager {
                 cooldown_expiry INTEGER NOT NULL,
                 PRIMARY KEY (killer_uuid, victim_uuid)
             )
+            """,
+
+            // Player skills table
+            """
+            CREATE TABLE IF NOT EXISTS player_skills (
+                player_uuid TEXT PRIMARY KEY,
+                skill_points_available INTEGER DEFAULT 0,
+                skill_points_spent INTEGER DEFAULT 0,
+                total_xp_earned INTEGER DEFAULT 0,
+
+                -- Combat tree (store skill names as TEXT)
+                combat_tier1 TEXT DEFAULT NULL,
+                combat_tier2 TEXT DEFAULT NULL,
+                combat_tier3 TEXT DEFAULT NULL,
+                combat_tier4 TEXT DEFAULT NULL,
+                combat_ultimate INTEGER DEFAULT 0,
+
+                -- Gathering tree
+                gathering_tier1 TEXT DEFAULT NULL,
+                gathering_tier2 TEXT DEFAULT NULL,
+                gathering_tier3 TEXT DEFAULT NULL,
+                gathering_tier4 TEXT DEFAULT NULL,
+                gathering_ultimate INTEGER DEFAULT 0,
+
+                -- Survival tree
+                survival_tier1 TEXT DEFAULT NULL,
+                survival_tier2 TEXT DEFAULT NULL,
+                survival_tier3 TEXT DEFAULT NULL,
+                survival_tier4 TEXT DEFAULT NULL,
+                survival_ultimate INTEGER DEFAULT 0,
+
+                -- Teamwork tree
+                teamwork_tier1 TEXT DEFAULT NULL,
+                teamwork_tier2 TEXT DEFAULT NULL,
+                teamwork_tier3 TEXT DEFAULT NULL,
+                teamwork_tier4 TEXT DEFAULT NULL,
+                teamwork_ultimate INTEGER DEFAULT 0,
+
+                -- Metadata
+                last_reset_time INTEGER DEFAULT 0,
+                ultimate_count INTEGER DEFAULT 0,
+
+                FOREIGN KEY(player_uuid) REFERENCES players(uuid)
+            )
+            """,
+
+            // Skill cooldowns table
+            """
+            CREATE TABLE IF NOT EXISTS skill_cooldowns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_uuid TEXT NOT NULL,
+                skill_name TEXT NOT NULL,
+                cooldown_end INTEGER NOT NULL,
+                FOREIGN KEY(player_uuid) REFERENCES players(uuid)
+            )
+            """,
+
+            // Player XP table
+            """
+            CREATE TABLE IF NOT EXISTS player_xp (
+                player_uuid TEXT PRIMARY KEY,
+                total_xp INTEGER DEFAULT 0,
+                current_xp INTEGER DEFAULT 0,
+                xp_multiplier REAL DEFAULT 1.0,
+                FOREIGN KEY(player_uuid) REFERENCES players(uuid)
+            )
             """
         };
 
