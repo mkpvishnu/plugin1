@@ -44,15 +44,15 @@ mvn dependency:tree
 
 The main plugin class follows this startup sequence:
 1. **DataManager** initializes SQLite database (creates 5 tables if needed)
-2. **9 Managers** initialize in dependency order (Game → Team → Territory → Season → Quest → Health → Combat → Difficulty)
+2. **11 Managers** initialize in dependency order (Game → Team → Territory → Season → Quest → Health → Combat → Difficulty → BossBar → WorldEvent)
 3. **Data Load**: Teams, Territories, and GameState loaded from database
-4. **9 Event Listeners** register for Minecraft events
-5. **8 Commands** register (team, quest, territory, revive, shop, stats, leaderboard, soc)
-6. **5 Scheduled Tasks** start (capture tick, season check, daily reset, scoreboard update, freezing damage)
+4. **13 Event Listeners** register for Minecraft events
+5. **9 Commands** register (team, quest, territory, revive, shop, stats, leaderboard, soc, compass)
+6. **12 Scheduled Tasks** start (capture tick, season check, daily reset, scoreboard update, freezing damage, weather control, seasonal particles, boss bar update, compass update, apocalypse effects, world event check, world event update)
 
 ### Core Architecture Pattern: Manager-Driven Design
 
-**Manager Layer** (9 classes in `/managers/`) owns all game logic and state:
+**Manager Layer** (11 classes in `/managers/`) owns all game logic and state:
 - **GameManager**: Overall game state, player data lifecycle, win conditions, scoreboard
 - **TeamManager**: Team assignment, elimination detection, team point management
 - **TerritoryManager**: Territory ownership, capture mechanics, bonus calculations
@@ -61,30 +61,46 @@ The main plugin class follows this startup sequence:
 - **QuestManager**: Daily/weekly quest generation, completion tracking, point rewards
 - **HealthManager**: 40-heart permadeath system, revival logic (max 2/cycle)
 - **CombatManager**: PvP kill rewards, bounty system, 12-hour kill cooldown tracking
+- **BossBarManager**: Boss bar creation, updates, and cleanup for team/territory info
+- **WorldEventManager**: Random world events (meteor showers, supply drops, mob sieges)
 - **DataManager**: SQLite persistence, all CRUD operations
 
-**Event Listener Layer** (9 classes in `/listeners/`) handles Minecraft events:
+**Event Listener Layer** (13 classes in `/listeners/`) handles Minecraft events:
 - Listeners are thin adapters: validate event → call manager method → handle result
+- Core listeners: PlayerJoin, PlayerDeath, PlayerQuit, PlayerRespawn, PlayerMove, PlayerInteract, BlockBreak, EntityDamage, EntityDeath
+- Seasonal effect listeners: CropGrowth, MobSpawn, Fishing
+- Feature listeners: CompassTracking
 - Example: `PlayerMoveListener` detects territory entry → calls `TerritoryManager.handlePlayerMove()` → applies bonuses
 
-**Command Layer** (8 classes in `/commands/`) exposes functionality to players:
+**Command Layer** (9 classes in `/commands/`) exposes functionality to players:
 - Commands delegate to managers, perform permission checks, format responses
-- Admin command (`/soc`) requires `soc.admin` permission
+- Player commands: team, quest, territory, revive, shop, stats, leaderboard, compass
+- Admin command: soc (requires `soc.admin` permission)
 
-**Task Layer** (5 classes in `/tasks/`) runs scheduled background operations:
+**Task Layer** (12 classes in `/tasks/`) runs scheduled background operations:
 - **CaptureTickTask** (1s): Updates territory capture progress, checks for captures
 - **SeasonCheckTask** (1h): Detects season transitions based on real-world time
 - **DailyResetTask** (10m): Detects midnight for daily quest resets
 - **ScoreboardUpdateTask** (2s): Refreshes player scoreboards with live data
 - **FreezingDamageTask** (30s): Applies winter freezing damage to players outdoors
+- **WeatherControlTask** (5m): Controls weather based on current season
+- **SeasonalParticlesTask** (3s): Spawns seasonal particle effects
+- **BossBarUpdateTask** (2s): Updates boss bar information for all players
+- **CompassUpdateTask** (5s): Updates tracking compass targets
+- **ApocalypseEffectsTask** (30s): Applies apocalypse world effects (water→lava, fire, ash)
+- **WorldEventCheckTask** (2h): Checks if random world events should trigger
+- **WorldEventUpdateTask** (5s): Updates active world events
 
 ### Critical Data Flows
 
 **Territory Capture Flow:**
-1. Player enters beacon radius (10 blocks) → `PlayerMoveListener` → `TerritoryManager.handlePlayerMove()`
-2. `CaptureTickTask` runs every second → checks if 3+ team members in range
-3. After 300 seconds → capture completes → `TerritoryManager.captureTerritory()`
-4. Updates database, awards 100 points, announces to server
+1. Player enters territory → `PlayerMoveListener` updates current territory tracking
+2. `CaptureTickTask` runs every second → counts alive players from each team within capture radius (10 blocks)
+3. If 3+ team members in range and no enemies within defense radius (50 blocks) → progress increments
+4. Progress updates sent to nearby players every 30 seconds
+5. After 300 seconds → capture completes → `TerritoryManager.captureTerritory()`
+6. Updates database, awards points, steals points from previous owner, announces to server
+7. If requirements not met → progress decays at 2x speed
 
 **Player Death Flow:**
 1. Player dies → `PlayerDeathListener` → `HealthManager.handleDeath()`
@@ -175,7 +191,32 @@ Implementation in `TerritoryManager.applyTerritoryBonus()`.
 
 ## Testing and Deployment
 
-**No automated tests present** - manual testing required on live Minecraft server.
+### Automated Tests
+
+**Test Framework:** JUnit 5 + MockBukkit (for Spigot mocking)
+
+**Test Coverage:** 3 integration test suites covering critical flows:
+- **CaptureTickTaskTest** (8 tests): Territory capture mechanics, progress tracking, contestation
+- **HealthManagerTest** (9 tests): Permadeath, revival limits, team elimination
+- **QuestManagerTest** (9 tests): Quest generation, progress tracking, completion rewards
+
+**Current Status:** Test structure in place with placeholder implementations. Tests require MockBukkit setup to be fully functional.
+
+**Running Tests:**
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=CaptureTickTaskTest
+
+# Skip tests during build
+mvn clean package -DskipTests
+```
+
+See `src/test/java/com/seasonsofconflict/tests/README.md` for implementation guide.
+
+### Manual Testing
 
 **Test Server Setup:**
 1. Minecraft 1.20.1 with Spigot or Paper
@@ -184,10 +225,11 @@ Implementation in `TerritoryManager.applyTerritoryBonus()`.
 4. Minimum 15 players (3 per team) for meaningful testing
 5. Use `/soc setcycle` and `/soc setseason` to test different game phases
 
-**Deployment:**
+### Deployment
+
 ```bash
 mvn clean package
-cp target/SeasonsOfConflict-1.0.0.jar /path/to/server/plugins/
+cp target/SeasonsOfConflict-1.0.1.jar /path/to/server/plugins/
 # Restart server
 ```
 
