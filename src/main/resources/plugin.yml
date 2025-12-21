@@ -49,6 +49,11 @@ commands:
     usage: /compass
     aliases: [track]
 
+  skills:
+    description: View skill tree and XP statistics
+    usage: /skills [stats|xp|info]
+    aliases: [sk]
+
 permissions:
   soc.admin:
     description: Allows use of admin commands

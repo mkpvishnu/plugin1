@@ -24,6 +24,8 @@ public class SeasonsOfConflict extends JavaPlugin {
     private DifficultyManager difficultyManager;
     private BossBarManager bossBarManager;
     private WorldEventManager worldEventManager;
+    private XPManager xpManager;
+    private SkillManager skillManager;
 
     // Listeners
     private CompassTrackingListener compassTrackingListener;
@@ -61,6 +63,14 @@ public class SeasonsOfConflict extends JavaPlugin {
             bossBarManager.cleanup();
         }
 
+        // Save skill and XP data
+        if (xpManager != null) {
+            xpManager.saveAll();
+        }
+        if (skillManager != null) {
+            skillManager.saveAll();
+        }
+
         // Save all data
         if (dataManager != null) {
             dataManager.saveAll();
@@ -84,6 +94,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         difficultyManager = new DifficultyManager(this);
         bossBarManager = new BossBarManager(this);
         worldEventManager = new WorldEventManager(this);
+        xpManager = new XPManager(this);
+        skillManager = new SkillManager(this);
 
         // Initialize listeners that need to be accessed
         compassTrackingListener = new CompassTrackingListener(this);
@@ -110,6 +122,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FishingListener(this), this);
         // Compass tracking listener
         getServer().getPluginManager().registerEvents(compassTrackingListener, this);
+        // XP gain listener
+        getServer().getPluginManager().registerEvents(new XPGainListener(this), this);
     }
 
     private void registerCommands() {
@@ -122,6 +136,7 @@ public class SeasonsOfConflict extends JavaPlugin {
         getCommand("leaderboard").setExecutor(new LeaderboardCommand(this));
         getCommand("soc").setExecutor(new AdminCommand(this));
         getCommand("compass").setExecutor(new CompassCommand(this));
+        getCommand("skills").setExecutor(new SkillsCommand(this));
     }
 
     private void startTasks() {
@@ -214,5 +229,13 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     public WorldEventManager getWorldEventManager() {
         return worldEventManager;
+    }
+
+    public XPManager getXPManager() {
+        return xpManager;
+    }
+
+    public SkillManager getSkillManager() {
+        return skillManager;
     }
 }
