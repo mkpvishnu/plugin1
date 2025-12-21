@@ -220,6 +220,199 @@ public class SkillEffectManager {
         lastCombatTime.remove(playerUUID);
     }
 
+    // ============================================
+    // GATHERING TREE EFFECTS
+    // ============================================
+
+    /**
+     * Fortune's Touch: +15% chance for double drops
+     */
+    public boolean applyFortuneTouch(Player player) {
+        if (!hasSkillByName(player, "fortunes_touch")) {
+            return false;
+        }
+        return Math.random() < 0.15;
+    }
+
+    /**
+     * Swift Hands: -20% block break time (Haste I effect)
+     */
+    public void applySwiftHands(Player player) {
+        if (!hasSkillByName(player, "swift_hands")) {
+            return;
+        }
+        // Apply Haste I effect continuously
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+            org.bukkit.potion.PotionEffectType.FAST_DIGGING,
+            200, // 10 seconds (renewed continuously)
+            0,   // Level I
+            false,
+            false
+        ));
+    }
+
+    /**
+     * Lumberjack: +50% wood drops
+     */
+    public int applyLumberjack(Player player, int baseDrops) {
+        if (!hasSkillByName(player, "lumberjack")) {
+            return baseDrops;
+        }
+        return (int) (baseDrops * 1.5);
+    }
+
+    /**
+     * Green Thumb: +20% crop yields
+     */
+    public int applyGreenThumb(Player player, int baseYield) {
+        if (!hasSkillByName(player, "green_thumb")) {
+            return baseYield;
+        }
+        return (int) (baseYield * 1.2);
+    }
+
+    // ============================================
+    // SURVIVAL TREE EFFECTS
+    // ============================================
+
+    /**
+     * Hardy: Apply +3 hearts (6 HP) max health
+     */
+    public void applyHardy(Player player) {
+        if (!hasSkillByName(player, "hardy")) {
+            return;
+        }
+
+        AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHealth != null) {
+            // +6 HP (3 hearts)
+            double currentMax = maxHealth.getBaseValue();
+            maxHealth.setBaseValue(currentMax + 6.0);
+        }
+    }
+
+    /**
+     * Thick Skin: Apply -10% damage reduction
+     */
+    public double applyThickSkin(Player player, double damage) {
+        if (!hasSkillByName(player, "thick_skin")) {
+            return damage;
+        }
+        return damage * 0.90; // 10% reduction
+    }
+
+    /**
+     * Hunger Resistance: +30% food saturation
+     */
+    public float applyHungerResistance(Player player, float saturation) {
+        if (!hasSkillByName(player, "hunger_resistance")) {
+            return saturation;
+        }
+        return saturation * 1.30f; // 30% more saturation
+    }
+
+    /**
+     * Regeneration: 0.5 HP every 5s when out of combat
+     */
+    public boolean canRegenerate(Player player) {
+        return hasSkillByName(player, "regeneration") && isOutOfCombat(player);
+    }
+
+    /**
+     * Fire Immunity: Check if player is immune to fire/lava
+     */
+    public boolean hasFireImmunity(Player player) {
+        return hasSkillByName(player, "fire_immunity");
+    }
+
+    /**
+     * Fall Damage Negation: Reduce/negate fall damage
+     */
+    public double applyFallDamageNegation(Player player, double damage, double fallDistance) {
+        if (!hasSkillByName(player, "fall_damage_negation")) {
+            return damage;
+        }
+
+        // No fall damage under 20 blocks, 50% reduction above
+        if (fallDistance < 20.0) {
+            return 0.0;
+        } else {
+            return damage * 0.50;
+        }
+    }
+
+    // ============================================
+    // TEAMWORK TREE EFFECTS
+    // ============================================
+
+    /**
+     * Shared Victory: +10% team points from quests
+     */
+    public int applySharedVictory(Player player, int basePoints) {
+        if (!hasSkillByName(player, "shared_victory")) {
+            return basePoints;
+        }
+        return (int) (basePoints * 1.10);
+    }
+
+    /**
+     * Pack Tactics: +5% damage per nearby teammate (max 20%)
+     */
+    public double applyPackTactics(Player player, double baseDamage) {
+        if (!hasSkillByName(player, "pack_tactics")) {
+            return baseDamage;
+        }
+
+        // Count nearby teammates (15 block range)
+        long nearbyTeammates = player.getWorld().getPlayers().stream()
+            .filter(p -> !p.equals(player))
+            .filter(p -> p.getLocation().distance(player.getLocation()) <= 15.0)
+            .filter(p -> {
+                // Check if same team
+                var playerTeam = plugin.getGameManager().getPlayerData(player);
+                var otherTeam = plugin.getGameManager().getPlayerData(p);
+                return playerTeam != null && otherTeam != null &&
+                       playerTeam.getTeamId() == otherTeam.getTeamId();
+            })
+            .count();
+
+        // +5% per ally, max 4 allies (20% total)
+        int bonusPercent = (int) Math.min(nearbyTeammates * 5, 20);
+        return baseDamage * (1.0 + (bonusPercent / 100.0));
+    }
+
+    /**
+     * Resource Sharing: Check if drops should be duplicated to teammate
+     */
+    public boolean applyResourceSharing(Player player) {
+        if (!hasSkillByName(player, "resource_sharing")) {
+            return false;
+        }
+        return Math.random() < 0.10; // 10% chance
+    }
+
+    /**
+     * Get random nearby teammate for resource sharing
+     */
+    public Player getRandomNearbyTeammate(Player player) {
+        List<Player> teammates = player.getWorld().getPlayers().stream()
+            .filter(p -> !p.equals(player))
+            .filter(p -> p.getLocation().distance(player.getLocation()) <= 30.0)
+            .filter(p -> {
+                var playerTeam = plugin.getGameManager().getPlayerData(player);
+                var otherTeam = plugin.getGameManager().getPlayerData(p);
+                return playerTeam != null && otherTeam != null &&
+                       playerTeam.getTeamId() == otherTeam.getTeamId();
+            })
+            .toList();
+
+        if (teammates.isEmpty()) {
+            return null;
+        }
+
+        return teammates.get(new Random().nextInt(teammates.size()));
+    }
+
     /**
      * Bloodlust stack data
      */

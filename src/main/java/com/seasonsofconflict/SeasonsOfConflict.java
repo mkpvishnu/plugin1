@@ -31,6 +31,8 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     // Listeners
     private CompassTrackingListener compassTrackingListener;
+    private GatheringSkillListener gatheringSkillListener;
+    private SurvivalSkillListener survivalSkillListener;
 
     @Override
     public void onEnable() {
@@ -132,6 +134,14 @@ public class SeasonsOfConflict extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SkillGUIListener(this), this);
         // Combat skill effects listener
         getServer().getPluginManager().registerEvents(new CombatSkillListener(this), this);
+        // Gathering skill effects listener
+        gatheringSkillListener = new GatheringSkillListener(this);
+        getServer().getPluginManager().registerEvents(gatheringSkillListener, this);
+        // Survival skill effects listener
+        survivalSkillListener = new SurvivalSkillListener(this);
+        getServer().getPluginManager().registerEvents(survivalSkillListener, this);
+        // Teamwork skill effects listener
+        getServer().getPluginManager().registerEvents(new TeamworkSkillListener(this), this);
     }
 
     private void registerCommands() {
@@ -184,6 +194,10 @@ public class SeasonsOfConflict extends JavaPlugin {
 
         // World event updates - runs every 5 seconds
         new WorldEventUpdateTask(this).runTaskTimer(this, 0L, 100L);
+
+        // Passive skill effects - runs every 5 seconds
+        new PassiveEffectsTask(this, gatheringSkillListener, survivalSkillListener)
+            .runTaskTimer(this, 0L, 100L);
     }
 
     // Getters
