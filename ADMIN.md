@@ -37,6 +37,7 @@ All admin commands require the `soc.admin` permission (default: OP only).
 /soc teams                     - View detailed team status
 /soc gameinfo                  - View current game state
 /soc event <trigger|stop|list|info> - Manage world events
+/soc skills <subcommand>       - Manage player skills & XP
 ```
 
 ---
@@ -526,6 +527,325 @@ Effects:
 - "Event already active": Use `/soc event stop` first
 - "Unknown event type": Check spelling (use underscores, e.g., `blood_moon`)
 - "Event disabled": Enable in config.yml
+
+---
+
+### Skills & XP Management
+
+#### `/soc skills <subcommand>`
+
+Manage player skills, skill points, and XP for testing or administrative purposes.
+
+**Subcommands:**
+```
+/soc skills give <player> <amount>        - Give skill points
+/soc skills set <player> <amount>         - Set exact skill points
+/soc skills reset <player> [tree]         - Force free skill reset
+/soc skills unlock <player> <skill>       - Force unlock specific skill
+/soc skills info <player>                 - View player's skill details
+/soc skills givexp <player> <amount>      - Give XP to player
+/soc skills clearall                      - Reset all players' skills
+/soc skills reload                        - Reload skill configuration
+```
+
+---
+
+#### `/soc skills give <player> <amount>`
+
+Award skill points to a player.
+
+**Syntax:**
+```
+/soc skills give <player> <amount>
+```
+
+**Examples:**
+```
+/soc skills give Steve 10      # Give Steve 10 skill points
+/soc skills give Alex 25       # Give Alex 25 skill points
+```
+
+**What it does:**
+- Adds specified amount of skill points to player's available pool
+- Notifies the player
+- Logs the action
+- Points can be spent immediately in skill tree GUI
+
+**Use cases:**
+- Rewarding players for events
+- Compensation for bugs
+- Testing skill trees
+- Jump-starting new players
+
+---
+
+#### `/soc skills set <player> <amount>`
+
+Set a player's exact skill point total.
+
+**Syntax:**
+```
+/soc skills set <player> <amount>
+```
+
+**Examples:**
+```
+/soc skills set Steve 50       # Set Steve to exactly 50 points
+/soc skills set Alex 0         # Remove all of Alex's available points
+```
+
+**What it does:**
+- Sets available skill points to exact amount
+- Does NOT affect already-spent points
+- Notifies the player
+- Logs the action
+
+**Important:**
+- This only changes **available** points, not points already spent on skills
+- Cannot be negative
+- Use `/soc skills reset` to refund spent points
+
+**Use cases:**
+- Correcting point amounts
+- Testing specific scenarios
+- Resetting player progression
+
+---
+
+#### `/soc skills reset <player> [tree]`
+
+Force reset a player's skills (free, no team points cost).
+
+**Syntax:**
+```
+/soc skills reset <player>               # Reset ALL trees
+/soc skills reset <player> <tree>        # Reset specific tree
+```
+
+**Tree options:** `COMBAT`, `GATHERING`, `SURVIVAL`, `TEAMWORK`
+
+**Examples:**
+```
+/soc skills reset Steve                  # Reset all Steve's skills
+/soc skills reset Alex COMBAT            # Reset only Alex's Combat tree
+/soc skills reset Notch GATHERING        # Reset only Notch's Gathering tree
+```
+
+**What it does:**
+- Refunds all skill points from specified tree(s)
+- Removes all unlocked skills
+- Does NOT cost team points (admin bypass)
+- Notifies the player
+- Logs the action
+
+**Use cases:**
+- Fixing incorrect skill choices
+- Allowing respec after balance changes
+- Testing different builds
+- Resetting after bugs
+
+---
+
+#### `/soc skills unlock <player> <skill>`
+
+Force unlock a specific skill for a player (bypasses all restrictions).
+
+**Syntax:**
+```
+/soc skills unlock <player> <skill_name>
+```
+
+**Examples:**
+```
+/soc skills unlock Steve swift_strikes
+/soc skills unlock Alex warlords_rampage
+/soc skills unlock Notch midas_touch
+```
+
+**What it does:**
+- Unlocks the specified skill instantly
+- **Bypasses ALL requirements:**
+  - Tier requirements
+  - Skill point cost
+  - Previous tier unlocks
+  - Ultimate limit (2 max)
+- Notifies the player
+- Logs the action
+
+**Skill names:**
+Use the internal skill name (lowercase, underscores). Examples:
+- Combat: `swift_strikes`, `critical_precision`, `whirlwind_strike`, `warlords_rampage`
+- Gathering: `fortunes_touch`, `vein_miner`, `diamond_hunter`, `midas_touch`
+- Survival: `hardy`, `regeneration`, `second_wind`, `immortal_fortress`
+- Teamwork: `shared_victory`, `healers_touch`, `tactical_retreat`, `commanders_blessing`
+
+**Use cases:**
+- Testing ultimate abilities
+- Rewarding special achievements
+- Demonstrations
+- Debugging skill effects
+
+---
+
+#### `/soc skills info <player>`
+
+View comprehensive skill information for a player.
+
+**Syntax:**
+```
+/soc skills info <player>
+```
+
+**Output includes:**
+- Available skill points
+- Total spent skill points
+- Total XP earned
+- Current XP progress toward next point
+- Ultimate count (max 2)
+- Points spent per tree
+- All unlocked skills listed by tree
+
+**Example output:**
+```
+=== Steve's Skills ===
+Skill Points: 15 available, 60 spent
+XP: 32,450 total, 230/500 to next point
+Ultimates: 2/2
+
+🗡️ Combat (35 pts) ✓
+   Skills: Swift Strikes, Critical Precision, Whirlwind Strike, Warlord's Rampage
+
+⛏️ Gathering (25 pts) ✓
+   Skills: Fortune's Touch, Vein Miner, Midas Touch
+```
+
+**Use cases:**
+- Checking player progression
+- Verifying bug reports
+- Understanding player builds
+- Competitive analysis
+
+---
+
+#### `/soc skills givexp <player> <amount>`
+
+Award XP to a player (automatically converts to skill points).
+
+**Syntax:**
+```
+/soc skills givexp <player> <amount>
+```
+
+**Examples:**
+```
+/soc skills givexp Steve 500       # Give 500 XP (1 skill point)
+/soc skills givexp Alex 2500       # Give 2500 XP (5 skill points)
+/soc skills givexp Notch 10000     # Give 10000 XP (20 skill points)
+```
+
+**What it does:**
+- Adds XP to player's total
+- **Automatically converts to skill points** (500 XP = 1 point)
+- Notifies player of XP and skill points earned
+- Shows admin how many skill points were earned
+- Logs the action
+
+**Conversion rate:** 500 XP = 1 Skill Point (configurable in config.yml)
+
+**Use cases:**
+- Event rewards
+- Compensation
+- Testing progression
+- Jump-starting players
+
+**Tip:** Shows earned skill points in response, e.g.:
+```
+✓ Gave Steve +2500 XP
+└─ Earned 5 skill point(s)!
+```
+
+---
+
+#### `/soc skills clearall`
+
+Reset all online players' skills (DANGEROUS - requires confirmation).
+
+**Syntax:**
+```
+/soc skills clearall                  # Shows warning
+/soc skills confirmclearall           # Actually executes
+```
+
+**What it does:**
+- Resets ALL skill trees for ALL online players
+- Refunds all skill points
+- Does NOT cost team points
+- Server-wide broadcast notification
+- Logs action as WARNING
+
+**⚠️ WARNING:**
+- This affects ALL online players simultaneously
+- Cannot be undone
+- Use only for:
+  - Season resets
+  - Major balance changes
+  - Server wipes
+  - Testing resets
+
+**Safety feature:** Requires typing `/soc skills confirmclearall` to prevent accidents
+
+---
+
+#### `/soc skills reload`
+
+Reload skill system configuration from config.yml.
+
+**Syntax:**
+```
+/soc skills reload
+```
+
+**What it reloads:**
+- `skills.max_skill_points`
+- `skills.max_ultimate_unlocks`
+- Other skill system settings
+
+**Does NOT reload:**
+- Player skill data (stored in database)
+- Skill definitions (requires plugin reload)
+
+**Use cases:**
+- Adjusting max skill points without restart
+- Changing ultimate limit
+- Testing config changes
+
+---
+
+### Skills Management Tips
+
+**Testing Skill Trees:**
+1. Give yourself points: `/soc skills give YourName 100`
+2. Open skill GUI: `/skills`
+3. Unlock skills to test
+4. Reset when done: `/soc skills reset YourName`
+
+**Balancing Skills:**
+1. Use `/soc skills info <player>` to see what players are choosing
+2. Adjust config values in `config.yml` under `skills:` section
+3. Use `/soc skills reload` to apply changes
+4. Monitor with `/leaderboard xp` to see XP distribution
+
+**Common Admin Tasks:**
+- **Reset player's build:** `/soc skills reset Player TREE`
+- **Give event reward:** `/soc skills givexp Player 1000`
+- **Test ultimate ability:** `/soc skills unlock YourName warlords_rampage`
+- **Check player progression:** `/soc skills info Player`
+
+**Important Notes:**
+- All skill resets via admin are FREE (no team points cost)
+- Force-unlocked skills bypass all restrictions (use carefully)
+- XP is retroactive - giving XP converts to points immediately
+- clearall affects ONLY online players (offline players unaffected)
 
 ---
 

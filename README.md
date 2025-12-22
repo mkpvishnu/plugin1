@@ -679,6 +679,149 @@ Eliminated teams:
 | `/leaderboard` | `/lb` | View kill leaderboard | `/leaderboard` |
 | `/leaderboard teams` | `/lb teams` | View team rankings | `/lb teams` |
 | `/compass` | `/track` | Get a tracking compass | `/compass` |
+| `/skills` | `/sk` | Open skill tree GUI | `/skills` |
+| `/skills stats` | `/sk stats` | View your skill & XP statistics | `/skills stats` |
+
+---
+
+## 🌟 Skills & Progression System
+
+### Overview
+
+**Seasons of Conflict** features a comprehensive skill tree system that replaces traditional enchantments. Earn XP through gameplay, unlock powerful abilities, and customize your playstyle across **4 specialized skill trees**.
+
+**Key Features:**
+- ✅ **4 Skill Trees:** Combat, Gathering, Survival, Teamwork
+- ✅ **60+ Unique Skills:** Passive and active abilities
+- ✅ **Progressive Tiers:** Unlock more powerful skills as you progress
+- ✅ **2 Ultimate Abilities:** Choose your two most powerful skills wisely
+- ✅ **XP System:** 500 XP = 1 Skill Point
+- ✅ **Cycle Resets:** Skills reset when difficulty cycles advance (adapt your build!)
+
+---
+
+### The 4 Skill Trees
+
+#### 🗡️ **COMBAT TREE** - "The Berserker"
+High damage, aggressive playstyle, risk/reward combat
+
+**Example Skills:**
+- **Swift Strikes** (Tier 1): +15% attack speed
+- **Critical Precision** (Tier 2): 20% chance for +50% damage
+- **Whirlwind Strike** (Tier 3): Spin attack hitting all nearby enemies
+- **Warlord's Rampage** (Ultimate): 15s of +50% damage, +30% attack speed, heal on kills
+
+---
+
+#### ⛏️ **GATHERING TREE** - "The Prospector"
+Resource efficiency, wealth generation, exploration
+
+**Example Skills:**
+- **Fortune's Touch** (Tier 1): +15% chance for double drops
+- **Vein Miner** (Tier 2): Break 5 connected ores at once
+- **Diamond Hunter** (Tier 3): Diamond ore drop rate 10% → 25%, reveal nearby diamonds
+- **Midas Touch** (Ultimate): +50% gathering rate, convert ore stacks to rare resources
+
+---
+
+#### 🛡️ **SURVIVAL TREE** - "The Endurer"
+Tanking, sustain, environmental resistance
+
+**Example Skills:**
+- **Hardy** (Tier 1): +3 hearts max health
+- **Regeneration** (Tier 2): Heal 0.5 HP every 5s when out of combat
+- **Second Wind** (Tier 3): Auto-heal 10 hearts when below 5 hearts (5min cooldown)
+- **Immortal Fortress** (Ultimate): 20s of 70% damage reduction, immunity to debuffs
+
+---
+
+#### 👥 **TEAMWORK TREE** - "The Commander"
+Team buffs, support abilities, coordination
+
+**Example Skills:**
+- **Shared Victory** (Tier 1): +10% team points from your quests
+- **Healer's Touch** (Tier 2): Heal nearby teammate for 5 hearts
+- **Tactical Retreat** (Tier 3): Teleport to home beacon with a teammate
+- **Commander's Blessing** (Ultimate): 30s server-wide team buffs (+25% damage/defense, regen, speed)
+
+---
+
+### How to Earn XP
+
+**XP Sources:**
+- 🏆 **Quest Completion:** 100-500 XP per quest
+- ⚔️ **Player Kills:** 200 XP per kill
+- 👹 **Mob Kills:** 10-50 XP (varies by mob type)
+- ⛏️ **Resource Mining:** 1-10 XP (stone to diamond)
+- 🎯 **Territory XP Bonus:** 2x XP when in XP territory (owned by your team)
+
+**Conversion Rate:** 500 XP = 1 Skill Point
+
+---
+
+### How to Use Skills
+
+**Opening the Skill Tree:**
+1. Type `/skills` or `/sk`
+2. Click on a tree (Combat, Gathering, Survival, Teamwork)
+3. Click on available skills to unlock them
+4. View your progress with `/skills stats`
+
+**Unlocking Skills:**
+- Skills are organized in **5 tiers** (Tier 1 → Ultimate)
+- You must unlock previous tiers before advancing
+- Each tier offers **3 options** - choose only 1 per tier
+- **Ultimate abilities** are limited to 2 total across all trees
+
+**Resetting Skills:**
+- Resets cost **team points** (purchasable at `/shop`)
+- Reset individual trees or all trees
+- Refunds all skill points for that tree
+- Skills **auto-reset** when difficulty cycle advances
+
+---
+
+### Active Skills
+
+Some skills are **active abilities** that you trigger manually:
+
+**How to Use:**
+- Most active skills trigger on **specific actions** (e.g., Whirlwind Strike on attack)
+- Some require **right-click** or **shift + action**
+- Check skill cooldown with `/skills active`
+- Cooldowns persist between deaths
+
+**Examples:**
+- **Whirlwind Strike**: 60s cooldown, costs 10 hunger
+- **Vein Miner**: 30s cooldown, costs 15 hunger
+- **Healer's Touch**: 60s cooldown, costs 20 hunger
+
+---
+
+### Strategy Tips
+
+**Max 2 Ultimates Rule:**
+- You can only unlock **2 ultimate abilities** across all 4 trees
+- Choose wisely based on your playstyle and team needs
+- Popular combos:
+  - Combat + Survival (PvP tank)
+  - Gathering + Teamwork (support/wealth)
+  - Combat + Gathering (balanced fighter)
+
+**Team Composition:**
+- Coordinate with your team to diversify builds
+- Having all 4 ultimate abilities covered = advantage
+- Support builds (Teamwork) are crucial for late game
+
+**Cycle Resets:**
+- All skills reset when difficulty cycle advances
+- Use this to adapt your build to current meta
+- Save team points for skill resets if needed
+
+**XP Optimization:**
+- Control XP territories for 2x XP bonus
+- Complete ALL daily quests (100-500 XP each)
+- Focus on player kills for fast XP (200 XP each)
 
 ---
 
