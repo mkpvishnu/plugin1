@@ -90,8 +90,8 @@ public class SkillTreeGUI {
 
         PlayerSkills skills = plugin.getSkillManager().getPlayerSkills(player.getUniqueId());
 
-        // Decorative border
-        ItemStack border = createItem(Material.GRAY_STAINED_GLASS_PANE, " ", null);
+        // Decorative border - tree-themed colors
+        ItemStack border = createTreeThemedBorder(tree);
         for (int i = 0; i < 9; i++) {
             inv.setItem(i, border);
             inv.setItem(i + 45, border);
@@ -211,10 +211,10 @@ public class SkillTreeGUI {
         ChatColor nameColor;
 
         if (unlocked) {
-            material = Material.LIME_STAINED_GLASS_PANE;  // Green = unlocked
+            material = getSkillMaterial(skill, true, false);
             nameColor = ChatColor.GREEN;
         } else if (canUnlock) {
-            material = Material.YELLOW_STAINED_GLASS_PANE;  // Yellow = can unlock
+            material = getSkillMaterial(skill, false, true);
             nameColor = ChatColor.YELLOW;
         } else if (!hasPrereq) {
             material = Material.GRAY_STAINED_GLASS_PANE;  // Gray = tier locked
@@ -293,6 +293,61 @@ public class SkillTreeGUI {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Create tree-themed border based on skill tree
+     */
+    private ItemStack createTreeThemedBorder(SkillTree tree) {
+        Material borderMaterial = switch (tree) {
+            case COMBAT -> Material.RED_STAINED_GLASS_PANE;
+            case GATHERING -> Material.GREEN_STAINED_GLASS_PANE;
+            case SURVIVAL -> Material.ORANGE_STAINED_GLASS_PANE;
+            case TEAMWORK -> Material.LIGHT_BLUE_STAINED_GLASS_PANE;
+        };
+        return createItem(borderMaterial, " ", null);
+    }
+
+    /**
+     * Get thematic material for skill based on tree and tier
+     */
+    private Material getSkillMaterial(Skill skill, boolean unlocked, boolean canUnlock) {
+        // For unlocked or affordable skills, use thematic items
+        if (unlocked || canUnlock) {
+            return switch (skill.getTree()) {
+                case COMBAT -> switch (skill.getTier()) {
+                    case TIER_1 -> Material.WOODEN_SWORD;
+                    case TIER_2 -> Material.STONE_SWORD;
+                    case TIER_3 -> Material.IRON_SWORD;
+                    case TIER_4 -> Material.DIAMOND_SWORD;
+                    case ULTIMATE -> Material.NETHERITE_SWORD;
+                };
+                case GATHERING -> switch (skill.getTier()) {
+                    case TIER_1 -> Material.WOODEN_PICKAXE;
+                    case TIER_2 -> Material.STONE_PICKAXE;
+                    case TIER_3 -> Material.IRON_PICKAXE;
+                    case TIER_4 -> Material.DIAMOND_PICKAXE;
+                    case ULTIMATE -> Material.NETHERITE_PICKAXE;
+                };
+                case SURVIVAL -> switch (skill.getTier()) {
+                    case TIER_1 -> Material.LEATHER_CHESTPLATE;
+                    case TIER_2 -> Material.CHAINMAIL_CHESTPLATE;
+                    case TIER_3 -> Material.IRON_CHESTPLATE;
+                    case TIER_4 -> Material.DIAMOND_CHESTPLATE;
+                    case ULTIMATE -> Material.NETHERITE_CHESTPLATE;
+                };
+                case TEAMWORK -> switch (skill.getTier()) {
+                    case TIER_1 -> Material.WHITE_BANNER;
+                    case TIER_2 -> Material.YELLOW_BANNER;
+                    case TIER_3 -> Material.LIGHT_BLUE_BANNER;
+                    case TIER_4 -> Material.CYAN_BANNER;
+                    case ULTIMATE -> Material.LIGHT_BLUE_BANNER;
+                };
+            };
+        }
+
+        // For locked skills, use colored glass panes
+        return Material.GRAY_STAINED_GLASS_PANE;
     }
 
     /**
