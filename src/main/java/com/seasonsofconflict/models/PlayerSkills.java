@@ -1,8 +1,6 @@
 package com.seasonsofconflict.models;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Tracks a player's skill tree progress
@@ -13,8 +11,9 @@ public class PlayerSkills {
     private int skillPointsSpent;
     private int totalXPEarned;
 
-    // Unlocked skills per tree/tier (tree -> tier -> skill name)
-    private final Map<SkillTree, Map<SkillTier, String>> unlockedSkills;
+    // Unlocked skills per tree/tier (tree -> tier -> list of skill names)
+    // Changed to support multiple skills per tier with dynamic pricing
+    private final Map<SkillTree, Map<SkillTier, List<String>>> unlockedSkills;
 
     // Ultimate count (max 2)
     private int ultimateCount;
@@ -29,9 +28,13 @@ public class PlayerSkills {
         this.ultimateCount = 0;
         this.lastResetTime = 0;
 
-        // Initialize empty skill maps for each tree
+        // Initialize empty skill lists for each tree/tier
         for (SkillTree tree : SkillTree.values()) {
-            unlockedSkills.put(tree, new HashMap<>());
+            Map<SkillTier, List<String>> tierMap = new HashMap<>();
+            for (SkillTier tier : SkillTier.values()) {
+                tierMap.put(tier, new ArrayList<>());
+            }
+            unlockedSkills.put(tree, tierMap);
         }
     }
 
@@ -104,26 +107,65 @@ public class PlayerSkills {
     }
 
     /**
-     * Check if a specific skill is unlocked
+     * Check if ANY skill is unlocked in a tier
      */
     public boolean hasSkill(SkillTree tree, SkillTier tier) {
-        return unlockedSkills.get(tree).containsKey(tier);
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        return skills != null && !skills.isEmpty();
     }
 
     /**
-     * Get the unlocked skill name for a tree/tier
+     * Check if a SPECIFIC skill is unlocked
+     */
+    public boolean hasSpecificSkill(SkillTree tree, SkillTier tier, String skillName) {
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        return skills != null && skills.contains(skillName);
+    }
+
+    /**
+     * Get the first unlocked skill name for a tree/tier (for backwards compatibility)
      */
     public String getSkill(SkillTree tree, SkillTier tier) {
-        return unlockedSkills.get(tree).get(tier);
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        return (skills != null && !skills.isEmpty()) ? skills.get(0) : null;
     }
 
     /**
-     * Unlock a skill in a specific tree/tier
+     * Get ALL unlocked skills in a tier
+     */
+    public List<String> getSkillsInTier(SkillTree tree, SkillTier tier) {
+        return new ArrayList<>(unlockedSkills.get(tree).get(tier));
+    }
+
+    /**
+     * Get count of skills unlocked in a tier (for dynamic pricing)
+     */
+    public int getSkillCountInTier(SkillTree tree, SkillTier tier) {
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        return skills != null ? skills.size() : 0;
+    }
+
+    /**
+     * Calculate dynamic cost for next skill in tier
+     * Formula: baseCost * (2^count)
+     * Examples: 1st = 5, 2nd = 10, 3rd = 20
+     */
+    public int calculateDynamicCost(SkillTree tree, SkillTier tier) {
+        int count = getSkillCountInTier(tree, tier);
+        int baseCost = tier.getCost();
+        return baseCost * (int)Math.pow(2, count);
+    }
+
+    /**
+     * Unlock a skill in a specific tree/tier (adds to list)
      */
     public void unlockSkill(SkillTree tree, SkillTier tier, String skillName) {
-        unlockedSkills.get(tree).put(tier, skillName);
-        if (tier.isUltimate()) {
-            incrementUltimateCount();
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        if (!skills.contains(skillName)) {
+            skills.add(skillName);
+            if (tier.isUltimate()) {
+                incrementUltimateCount();
+            }
         }
     }
 
@@ -131,29 +173,52 @@ public class PlayerSkills {
      * Force unlock a skill (admin bypass - no restrictions checked)
      */
     public void forceUnlockSkill(SkillTree tree, SkillTier tier, String skillName) {
-        unlockedSkills.get(tree).put(tier, skillName);
-        if (tier.isUltimate()) {
-            incrementUltimateCount();
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        if (!skills.contains(skillName)) {
+            skills.add(skillName);
+            if (tier.isUltimate()) {
+                incrementUltimateCount();
+            }
         }
     }
 
     /**
-     * Remove a skill from a tree/tier
+     * Remove a specific skill from a tree/tier
      */
-    public void removeSkill(SkillTree tree, SkillTier tier) {
-        String removed = unlockedSkills.get(tree).remove(tier);
-        if (removed != null && tier.isUltimate()) {
+    public void removeSkill(SkillTree tree, SkillTier tier, String skillName) {
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        if (skills.remove(skillName) && tier.isUltimate()) {
             decrementUltimateCount();
         }
     }
 
     /**
-     * Get total points spent in a specific tree
+     * Remove ALL skills from a tier
+     */
+    public void removeAllSkillsInTier(SkillTree tree, SkillTier tier) {
+        List<String> skills = unlockedSkills.get(tree).get(tier);
+        int count = skills.size();
+        skills.clear();
+        if (tier.isUltimate()) {
+            ultimateCount -= count;
+            if (ultimateCount < 0) ultimateCount = 0;
+        }
+    }
+
+    /**
+     * Get total points spent in a specific tree (including dynamic costs)
      */
     public int getPointsSpentInTree(SkillTree tree) {
         int total = 0;
-        for (SkillTier tier : unlockedSkills.get(tree).keySet()) {
-            total += tier.getCost();
+        for (Map.Entry<SkillTier, List<String>> entry : unlockedSkills.get(tree).entrySet()) {
+            SkillTier tier = entry.getKey();
+            List<String> skills = entry.getValue();
+            int baseCost = tier.getCost();
+
+            // Calculate cost for each skill with exponential pricing
+            for (int i = 0; i < skills.size(); i++) {
+                total += baseCost * (int)Math.pow(2, i);
+            }
         }
         return total;
     }
@@ -166,8 +231,18 @@ public class PlayerSkills {
     }
 
     /**
-     * Check if player can afford a skill
+     * Check if player can afford a skill with dynamic pricing
      */
+    public boolean canAfford(SkillTree tree, SkillTier tier) {
+        int dynamicCost = calculateDynamicCost(tree, tier);
+        return skillPointsAvailable >= dynamicCost;
+    }
+
+    /**
+     * Check if player can afford a skill (legacy method using base cost)
+     * @deprecated Use canAfford(SkillTree, SkillTier) instead for dynamic pricing
+     */
+    @Deprecated
     public boolean canAfford(SkillTier tier) {
         return skillPointsAvailable >= tier.getCost();
     }
@@ -184,22 +259,29 @@ public class PlayerSkills {
     }
 
     /**
-     * Reset a specific skill tree
+     * Reset a specific skill tree (refunds with dynamic pricing)
      */
     public void resetTree(SkillTree tree) {
-        Map<SkillTier, String> treeSkills = unlockedSkills.get(tree);
+        Map<SkillTier, List<String>> treeSkills = unlockedSkills.get(tree);
         int refundPoints = 0;
 
-        // Calculate refund
-        for (SkillTier tier : treeSkills.keySet()) {
-            refundPoints += tier.getCost();
-            if (tier.isUltimate()) {
-                decrementUltimateCount();
-            }
-        }
+        // Calculate refund including dynamic costs
+        for (Map.Entry<SkillTier, List<String>> entry : treeSkills.entrySet()) {
+            SkillTier tier = entry.getKey();
+            List<String> skills = entry.getValue();
+            int baseCost = tier.getCost();
 
-        // Clear tree
-        treeSkills.clear();
+            // Refund each skill with exponential pricing
+            for (int i = 0; i < skills.size(); i++) {
+                refundPoints += baseCost * (int)Math.pow(2, i);
+                if (tier.isUltimate()) {
+                    decrementUltimateCount();
+                }
+            }
+
+            // Clear skills in this tier
+            skills.clear();
+        }
 
         // Refund points
         skillPointsAvailable += refundPoints;

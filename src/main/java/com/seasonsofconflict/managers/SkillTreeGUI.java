@@ -197,36 +197,40 @@ public class SkillTreeGUI {
     }
 
     /**
-     * Create skill item for display in tree view
+     * Create skill item for display in tree view with dynamic pricing
      */
     private ItemStack createSkillItem(Skill skill, PlayerSkills skills) {
-        // Determine if THIS SPECIFIC skill is unlocked (not just any skill in the tier)
-        String unlockedSkillName = skills.getSkill(skill.getTree(), skill.getTier());
-        boolean unlocked = (unlockedSkillName != null && unlockedSkillName.equals(skill.getInternalName()));
-        boolean tierHasSkill = skills.hasSkill(skill.getTree(), skill.getTier());
-        boolean canAfford = skills.canAfford(skill.getTier());
+        // Check if THIS SPECIFIC skill is unlocked
+        boolean unlocked = skills.hasSpecificSkill(skill.getTree(), skill.getTier(), skill.getInternalName());
+
+        // Calculate dynamic cost (1x, 2x, 4x depending on skills already unlocked)
+        int dynamicCost = skills.calculateDynamicCost(skill.getTree(), skill.getTier());
+        int currentCount = skills.getSkillCountInTier(skill.getTree(), skill.getTier());
+
+        // Check if player can afford with dynamic pricing
+        boolean canAfford = skills.canAfford(skill.getTree(), skill.getTier());
         boolean hasPrereq = skills.hasPrerequisite(skill.getTree(), skill.getTier());
-        boolean canUnlock = canAfford && hasPrereq && !tierHasSkill;
+        boolean canUnlock = canAfford && hasPrereq && !unlocked;
 
         // Choose material and color based on state
         Material material;
         ChatColor nameColor;
 
         if (unlocked) {
+            // Skill is unlocked
             material = getSkillMaterial(skill, true, false);
             nameColor = ChatColor.GREEN;
-        } else if (tierHasSkill) {
-            // Another skill in this tier is already unlocked
-            material = Material.BLACK_STAINED_GLASS_PANE;  // Black = tier occupied
-            nameColor = ChatColor.DARK_GRAY;
         } else if (canUnlock) {
+            // Can be unlocked now
             material = getSkillMaterial(skill, false, true);
             nameColor = ChatColor.YELLOW;
         } else if (!hasPrereq) {
-            material = Material.GRAY_STAINED_GLASS_PANE;  // Gray = tier locked
+            // Tier locked (need previous tier first)
+            material = Material.GRAY_STAINED_GLASS_PANE;
             nameColor = ChatColor.GRAY;
         } else {
-            material = Material.RED_STAINED_GLASS_PANE;  // Red = can't afford
+            // Can't afford
+            material = Material.RED_STAINED_GLASS_PANE;
             nameColor = ChatColor.RED;
         }
 
@@ -252,18 +256,33 @@ public class SkillTreeGUI {
         }
 
         lore.add("");
-        lore.add(ChatColor.GOLD + "Cost: " + ChatColor.WHITE + skill.getTier().getCost() + " points");
+
+        // Show dynamic cost with multiplier info
+        int baseCost = skill.getTier().getCost();
+        if (currentCount == 0) {
+            // First skill in tier - show base cost
+            lore.add(ChatColor.GOLD + "Cost: " + ChatColor.WHITE + dynamicCost + " points");
+        } else {
+            // Additional skill - show multiplier
+            int multiplier = (int)Math.pow(2, currentCount);
+            lore.add(ChatColor.GOLD + "Cost: " + ChatColor.WHITE + dynamicCost + " points " +
+                    ChatColor.GRAY + "(x" + multiplier + " multiplier)");
+        }
+
         lore.add(ChatColor.GOLD + "Tier: " + ChatColor.WHITE + skill.getTier().getDisplayName());
         lore.add(ChatColor.GOLD + "Type: " + ChatColor.WHITE + skill.getType().getDisplayName());
+
+        // Show how many skills already unlocked in this tier
+        if (currentCount > 0) {
+            List<String> unlockedSkills = skills.getSkillsInTier(skill.getTree(), skill.getTier());
+            lore.add(ChatColor.GRAY + "(" + currentCount + "/3 skills unlocked in tier)");
+        }
 
         lore.add("");
 
         // Status and instructions
         if (unlocked) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "✓ UNLOCKED");
-        } else if (tierHasSkill) {
-            // Show which skill is unlocked in this tier
-            lore.add(ChatColor.DARK_GRAY + "⚠ Tier occupied by: " + ChatColor.GRAY + unlockedSkillName);
         } else if (canUnlock) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to unlock!");
         } else if (!hasPrereq) {
@@ -272,7 +291,7 @@ public class SkillTreeGUI {
                 lore.add(ChatColor.RED + "⚠ Requires: " + prevTier.getDisplayName() + " tier");
             }
         } else if (!canAfford) {
-            int needed = skill.getTier().getCost() - skills.getSkillPointsAvailable();
+            int needed = dynamicCost - skills.getSkillPointsAvailable();
             lore.add(ChatColor.RED + "⚠ Need " + needed + " more skill points");
         }
 
@@ -457,7 +476,7 @@ public class SkillTreeGUI {
     }
 
     /**
-     * Handle skill unlock attempt
+     * Handle skill unlock attempt with dynamic pricing
      */
     private boolean handleSkillUnlock(Player player, Inventory inv, int slot, ItemStack clicked) {
         // Extract skill name from item lore
@@ -473,22 +492,7 @@ public class SkillTreeGUI {
         Skill skill = findSkillByDisplayName(skillNameLine);
         if (skill == null) return true;
 
-        // Check if THIS SPECIFIC skill is already unlocked
-        PlayerSkills skills = plugin.getSkillManager().getPlayerSkills(player.getUniqueId());
-        String unlockedSkillName = skills.getSkill(skill.getTree(), skill.getTier());
-        if (unlockedSkillName != null && unlockedSkillName.equals(skill.getInternalName())) {
-            MessageUtils.sendMessage(player, "&cYou already have this skill unlocked!");
-            return true;
-        }
-
-        // Check if tier is occupied by another skill
-        if (skills.hasSkill(skill.getTree(), skill.getTier())) {
-            MessageUtils.sendMessage(player, "&cThis tier is already occupied by: &e" + unlockedSkillName);
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            return true;
-        }
-
-        // Attempt unlock
+        // Attempt unlock (SkillManager handles all validation including dynamic pricing)
         SkillManager.UnlockResult result = plugin.getSkillManager().unlockSkill(
             player.getUniqueId(), skill.getTree(), skill.getTier(), skill.getInternalName()
         );
@@ -500,7 +504,7 @@ public class SkillTreeGUI {
             // Apply skill effects immediately
             applySkillEffectsImmediately(player, skill);
 
-            // Refresh GUI
+            // Refresh GUI to show updated costs
             openTreeView(player, skill.getTree());
         } else {
             MessageUtils.sendMessage(player, "&c&l✗ " + result.getMessage());

@@ -60,43 +60,58 @@ public class SkillManager {
     }
 
     /**
-     * Attempt to unlock a skill
-     * @return true if unlocked successfully, false otherwise
+     * Attempt to unlock a skill with dynamic pricing
+     * Cost increases exponentially: 1st = base, 2nd = 2x base, 3rd = 4x base
+     * @return UnlockResult with success status and message
      */
     public UnlockResult unlockSkill(UUID playerUUID, SkillTree tree, SkillTier tier, String skillName) {
         PlayerSkills skills = getPlayerSkills(playerUUID);
 
-        // Validation checks
-        if (skills.hasSkill(tree, tier)) {
-            return new UnlockResult(false, "You already have a skill in this tier!");
+        // Check if THIS SPECIFIC skill is already unlocked
+        if (skills.hasSpecificSkill(tree, tier, skillName)) {
+            return new UnlockResult(false, "You already have this skill unlocked!");
         }
 
-        if (!skills.canAfford(tier)) {
-            return new UnlockResult(false, "Not enough skill points! Need " + tier.getCost() + ", have " + skills.getSkillPointsAvailable());
+        // Calculate dynamic cost based on skills already unlocked in this tier
+        int dynamicCost = skills.calculateDynamicCost(tree, tier);
+        int currentCount = skills.getSkillCountInTier(tree, tier);
+
+        // Check if player can afford the dynamic cost
+        if (!skills.canAfford(tree, tier)) {
+            return new UnlockResult(false, "Not enough skill points! Need " + dynamicCost +
+                    " (" + (currentCount + 1) + "x cost), have " + skills.getSkillPointsAvailable());
         }
 
+        // Check prerequisite
         if (!skills.hasPrerequisite(tree, tier)) {
             SkillTier prevTier = tier.getPreviousTier();
             return new UnlockResult(false, "You must unlock " + prevTier.getDisplayName() + " tier first!");
         }
 
+        // Check ultimate limit
         if (tier.isUltimate() && skills.hasMaxUltimates()) {
             return new UnlockResult(false, "You can only unlock " + maxUltimateUnlocks + " Ultimate abilities!");
         }
 
-        // Check max skill points
-        if (skills.getSkillPointsSpent() + tier.getCost() > maxSkillPoints) {
+        // Check max skill points (using dynamic cost)
+        if (skills.getSkillPointsSpent() + dynamicCost > maxSkillPoints) {
             return new UnlockResult(false, "Cannot exceed " + maxSkillPoints + " total skill points!");
         }
 
-        // Unlock the skill
+        // Unlock the skill and spend dynamic cost
         skills.unlockSkill(tree, tier, skillName);
-        skills.spendSkillPoints(tier.getCost());
+        skills.spendSkillPoints(dynamicCost);
 
         // Save to database
         savePlayerSkills(skills);
 
-        return new UnlockResult(true, "Unlocked " + skillName + "!");
+        // Build success message
+        String message = "Unlocked " + skillName + "!";
+        if (currentCount > 0) {
+            message += " (Cost: " + dynamicCost + " pts - " + (currentCount + 1) + "x multiplier)";
+        }
+
+        return new UnlockResult(true, message);
     }
 
     /**
