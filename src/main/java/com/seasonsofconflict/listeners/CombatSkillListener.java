@@ -213,11 +213,12 @@ public class CombatSkillListener implements Listener {
             attackSpeed.setBaseValue(4.0);
         }
 
-        // Reset max health to base (20.0 hearts = 40 HP)
-        // Note: This will be modified by HealthManager for permadeath system
+        // Reset max health to configured base (80 HP = 40 hearts by default)
+        // This is set by HealthManager, so we get it from config
+        double baseHealth = plugin.getConfig().getDouble("player.max_health", 80.0);
         var maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
         if (maxHealth != null) {
-            maxHealth.setBaseValue(20.0);
+            maxHealth.setBaseValue(baseHealth);
         }
     }
 }

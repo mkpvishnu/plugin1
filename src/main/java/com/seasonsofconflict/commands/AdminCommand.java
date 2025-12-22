@@ -38,6 +38,7 @@ public class AdminCommand implements CommandExecutor {
             MessageUtils.sendMessage(sender, "&e/soc apocalypse [on|off] &7- Toggle apocalypse");
             MessageUtils.sendMessage(sender, "&e/soc revive <player> &7- Admin revive player");
             MessageUtils.sendMessage(sender, "&e/soc eliminate <team> &7- Eliminate a team");
+            MessageUtils.sendMessage(sender, "&e/soc reactivate <team> &7- Reactivate an eliminated team");
             MessageUtils.sendMessage(sender, "&e/soc territories &7- View territory status");
             MessageUtils.sendMessage(sender, "&e/soc teams &7- View team status");
             MessageUtils.sendMessage(sender, "&e/soc gameinfo &7- View game state");
@@ -232,6 +233,36 @@ public class AdminCommand implements CommandExecutor {
 
                 MessageUtils.sendSuccess(sender, "Eliminated " + targetTeam.getColoredName() + " &a(admin)");
                 plugin.getLogger().info(sender.getName() + " admin-eliminated team " + targetTeam.getName());
+                break;
+
+            case "reactivate":
+                if (args.length < 2) {
+                    MessageUtils.sendError(sender, "Usage: /soc reactivate <team>");
+                    return true;
+                }
+
+                TeamData reactivateTeam = parseTeam(args[1]);
+                if (reactivateTeam == null) {
+                    MessageUtils.sendError(sender, "Unknown team: " + args[1]);
+                    MessageUtils.sendMessage(sender, "&7Available teams: North, West, Center, East, South (or 1-5)");
+                    return true;
+                }
+
+                if (!reactivateTeam.isEliminated()) {
+                    MessageUtils.sendError(sender, reactivateTeam.getName() + " is not eliminated!");
+                    return true;
+                }
+
+                // Reactivate the team
+                reactivateTeam.setEliminated(false);
+                plugin.getTeamManager().saveTeam(reactivateTeam);
+
+                // Broadcast to server
+                Bukkit.broadcastMessage(MessageUtils.colorize("&6&l[!] " + reactivateTeam.getColoredName() +
+                    " &6&lhas been REACTIVATED by an admin!"));
+
+                MessageUtils.sendSuccess(sender, "Reactivated " + reactivateTeam.getColoredName() + " &a(admin)");
+                plugin.getLogger().info(sender.getName() + " admin-reactivated team " + reactivateTeam.getName());
                 break;
 
             case "territories":
