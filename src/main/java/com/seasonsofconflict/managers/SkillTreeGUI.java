@@ -12,7 +12,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Manages skill tree GUI creation and display
@@ -20,9 +23,11 @@ import java.util.List;
 public class SkillTreeGUI {
 
     private final SeasonsOfConflict plugin;
+    private final Map<UUID, SkillTree> pendingResets;
 
     public SkillTreeGUI(SeasonsOfConflict plugin) {
         this.plugin = plugin;
+        this.pendingResets = new HashMap<>();
     }
 
     /**
@@ -297,6 +302,12 @@ public class SkillTreeGUI {
     public boolean handleClick(Player player, Inventory inv, int slot, ItemStack clicked) {
         if (clicked == null || clicked.getType() == Material.AIR) return true;
 
+        // Check if this is reset confirmation GUI (has LIME_WOOL at slot 11 and RED_WOOL at slot 15)
+        if (inv.getSize() == 27 && inv.getItem(11) != null && inv.getItem(11).getType() == Material.LIME_WOOL &&
+            inv.getItem(15) != null && inv.getItem(15).getType() == Material.RED_WOOL) {
+            return handleResetConfirmationClick(player, slot);
+        }
+
         String invTitle = inv.getViewers().isEmpty() ? "" :
             ChatColor.stripColor(Bukkit.getServer().createInventory(null, inv.getSize()).getType().name());
 
@@ -348,8 +359,12 @@ public class SkillTreeGUI {
 
         // Reset button
         if (slot == 53) {
-            // TODO: Implement reset confirmation GUI
-            MessageUtils.sendMessage(player, "&cTree reset coming soon!");
+            SkillTree tree = getTreeFromInventory(inv);
+            if (tree != null) {
+                openResetConfirmation(player, tree);
+            } else {
+                MessageUtils.sendMessage(player, "&cError: Could not determine skill tree!");
+            }
             return true;
         }
 
@@ -430,5 +445,130 @@ public class SkillTreeGUI {
             }
         }
         return null;
+    }
+
+    /**
+     * Get which tree is being viewed from inventory
+     */
+    private SkillTree getTreeFromInventory(Inventory inv) {
+        ItemStack treeInfo = inv.getItem(4);
+        if (treeInfo == null || !treeInfo.hasItemMeta()) return null;
+
+        String displayName = ChatColor.stripColor(treeInfo.getItemMeta().getDisplayName());
+        if (displayName.contains("Combat")) return SkillTree.COMBAT;
+        if (displayName.contains("Gathering")) return SkillTree.GATHERING;
+        if (displayName.contains("Survival")) return SkillTree.SURVIVAL;
+        if (displayName.contains("Teamwork")) return SkillTree.TEAMWORK;
+
+        return null;
+    }
+
+    /**
+     * Open reset confirmation GUI
+     */
+    public void openResetConfirmation(Player player, SkillTree tree) {
+        Inventory inv = Bukkit.createInventory(null, 27,
+            ChatColor.RED + "" + ChatColor.BOLD + "⚠ CONFIRM RESET ⚠");
+
+        PlayerSkills skills = plugin.getSkillManager().getPlayerSkills(player.getUniqueId());
+        TeamData team = plugin.getTeamManager().getTeam(player);
+
+        int resetCost = plugin.getConfig().getInt("skills.reset_costs.single_tree", 500);
+        int pointsToRefund = skills.getPointsSpentInTree(tree);
+
+        // Decorative border
+        ItemStack border = createItem(Material.BLACK_STAINED_GLASS_PANE, " ", null);
+        for (int i = 0; i < 27; i++) {
+            inv.setItem(i, border);
+        }
+
+        // Info display
+        List<String> infoLore = new ArrayList<>();
+        infoLore.add("");
+        infoLore.add(ChatColor.GRAY + "Tree: " + ChatColor.WHITE + tree.getDisplayName());
+        infoLore.add(ChatColor.GRAY + "Points to Refund: " + ChatColor.GREEN + pointsToRefund);
+        infoLore.add(ChatColor.GRAY + "Cost: " + ChatColor.GOLD + resetCost + " team points");
+        infoLore.add("");
+        if (team != null) {
+            infoLore.add(ChatColor.GRAY + "Team Points: " + ChatColor.WHITE + team.getQuestPoints());
+            if (team.getQuestPoints() < resetCost) {
+                infoLore.add("");
+                infoLore.add(ChatColor.RED + "❌ Not enough team points!");
+            }
+        } else {
+            infoLore.add(ChatColor.RED + "❌ You are not on a team!");
+        }
+
+        ItemStack infoItem = createItem(Material.PAPER,
+            ChatColor.YELLOW + "" + ChatColor.BOLD + "Reset " + tree.getDisplayName() + " Tree",
+            infoLore.toArray(new String[0])
+        );
+        inv.setItem(13, infoItem);
+
+        // Confirm button (slot 11)
+        ItemStack confirmButton = createItem(Material.LIME_WOOL,
+            ChatColor.GREEN + "" + ChatColor.BOLD + "✓ CONFIRM RESET",
+            "",
+            ChatColor.GRAY + "All skills in this tree will be reset",
+            ChatColor.GRAY + "You will get " + ChatColor.GREEN + pointsToRefund + " skill points" + ChatColor.GRAY + " back",
+            ChatColor.GRAY + "Cost: " + ChatColor.GOLD + resetCost + " team points",
+            "",
+            ChatColor.YELLOW + "Click to confirm"
+        );
+        inv.setItem(11, confirmButton);
+
+        // Cancel button (slot 15)
+        ItemStack cancelButton = createItem(Material.RED_WOOL,
+            ChatColor.RED + "" + ChatColor.BOLD + "✗ CANCEL",
+            "",
+            ChatColor.GRAY + "Return to skill tree"
+        );
+        inv.setItem(15, cancelButton);
+
+        // Store pending reset
+        pendingResets.put(player.getUniqueId(), tree);
+
+        player.openInventory(inv);
+    }
+
+    /**
+     * Handle reset confirmation click
+     */
+    public boolean handleResetConfirmationClick(Player player, int slot) {
+        UUID playerUUID = player.getUniqueId();
+        SkillTree tree = pendingResets.get(playerUUID);
+
+        if (tree == null) {
+            player.closeInventory();
+            return true;
+        }
+
+        // Confirm button
+        if (slot == 11) {
+            int resetCost = plugin.getConfig().getInt("skills.reset_costs.single_tree", 500);
+            boolean success = plugin.getSkillManager().resetTree(playerUUID, tree, resetCost);
+
+            if (success) {
+                MessageUtils.sendMessage(player, "&a&l✓ " + tree.getDisplayName() + " tree has been reset!");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
+                pendingResets.remove(playerUUID);
+                openTreeView(player, tree);
+            } else {
+                MessageUtils.sendMessage(player, "&c&l✗ Failed to reset tree! Not enough team points.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+                player.closeInventory();
+                pendingResets.remove(playerUUID);
+            }
+            return true;
+        }
+
+        // Cancel button
+        if (slot == 15) {
+            pendingResets.remove(playerUUID);
+            openTreeView(player, tree);
+            return true;
+        }
+
+        return true;
     }
 }

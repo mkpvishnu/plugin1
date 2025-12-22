@@ -128,6 +128,16 @@ public class PlayerSkills {
     }
 
     /**
+     * Force unlock a skill (admin bypass - no restrictions checked)
+     */
+    public void forceUnlockSkill(SkillTree tree, SkillTier tier, String skillName) {
+        unlockedSkills.get(tree).put(tier, skillName);
+        if (tier.isUltimate()) {
+            incrementUltimateCount();
+        }
+    }
+
+    /**
      * Remove a skill from a tree/tier
      */
     public void removeSkill(SkillTree tree, SkillTier tier) {

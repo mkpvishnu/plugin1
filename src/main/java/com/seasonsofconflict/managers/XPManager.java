@@ -86,8 +86,9 @@ public class XPManager {
 
         // Check for territory bonus
         if (plugin.getConfig().getBoolean("skills.enabled", true)) {
-            // TODO: Check if player is in XP territory once territory bonuses are defined
-            // For now, just use base multiplier
+            double territoryBonus = plugin.getTerritoryManager().getTerritoryBonus(player,
+                com.seasonsofconflict.models.BonusType.XP);
+            multiplier *= territoryBonus; // Apply territory multiplier
         }
 
         int finalAmount = (int) (baseAmount * multiplier);

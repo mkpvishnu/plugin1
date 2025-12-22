@@ -31,7 +31,7 @@ public class SkillManager {
     /**
      * Load configuration from config.yml
      */
-    private void loadConfiguration() {
+    public void loadConfiguration() {
         this.maxSkillPoints = plugin.getConfig().getInt("skills.max_skill_points", 100);
         this.maxUltimateUnlocks = plugin.getConfig().getInt("skills.max_ultimate_unlocks", 2);
     }
@@ -108,7 +108,18 @@ public class SkillManager {
         PlayerSkills skills = getPlayerSkills(playerUUID);
 
         // Check if player's team can afford reset
-        // TODO: Implement team points check once team system is integrated
+        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerUUID);
+        if (player != null && cost > 0) {
+            com.seasonsofconflict.models.TeamData team = plugin.getTeamManager().getTeam(player);
+            if (team == null) {
+                return false; // Player not on a team
+            }
+            if (team.getQuestPoints() < cost) {
+                return false; // Team doesn't have enough points
+            }
+            team.subtractPoints(cost);
+            plugin.getTeamManager().saveTeam(team);
+        }
 
         skills.resetTree(tree);
         savePlayerSkills(skills);
@@ -122,7 +133,19 @@ public class SkillManager {
     public boolean resetAllTrees(UUID playerUUID, int cost) {
         PlayerSkills skills = getPlayerSkills(playerUUID);
 
-        // TODO: Implement team points check
+        // Check if player's team can afford reset
+        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerUUID);
+        if (player != null && cost > 0) {
+            com.seasonsofconflict.models.TeamData team = plugin.getTeamManager().getTeam(player);
+            if (team == null) {
+                return false; // Player not on a team
+            }
+            if (team.getQuestPoints() < cost) {
+                return false; // Team doesn't have enough points
+            }
+            team.subtractPoints(cost);
+            plugin.getTeamManager().saveTeam(team);
+        }
 
         skills.resetAll();
         savePlayerSkills(skills);
