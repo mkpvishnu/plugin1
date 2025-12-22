@@ -65,13 +65,14 @@ public class GatheringSkillListener implements Listener {
                 ItemStack wood = new ItemStack(blockType, bonusDrops - 1);
                 block.getWorld().dropItemNaturally(block.getLocation(), wood);
 
-                // Visual: Falling leaves
+                // Visual: Falling leaves (using BLOCK_CRACK with leaves)
                 block.getWorld().spawnParticle(
-                    Particle.FALLING_LEAVES,
+                    Particle.BLOCK_CRACK,
                     block.getLocation().add(0.5, 0.5, 0.5),
                     15,
                     0.5, 0.5, 0.5,
-                    0.05
+                    0.05,
+                    Material.OAK_LEAVES.createBlockData()
                 );
             }
         }

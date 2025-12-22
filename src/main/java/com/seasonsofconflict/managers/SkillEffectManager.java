@@ -43,7 +43,7 @@ public class SkillEffectManager {
      */
     public String getUnlockedSkill(Player player, SkillTree tree, com.seasonsofconflict.models.SkillTier tier) {
         PlayerSkills skills = plugin.getSkillManager().getPlayerSkills(player.getUniqueId());
-        return skills.getUnlockedSkills().get(tree).get(tier);
+        return skills.getSkill(tree, tier);
     }
 
     /**
