@@ -200,11 +200,13 @@ public class SkillTreeGUI {
      * Create skill item for display in tree view
      */
     private ItemStack createSkillItem(Skill skill, PlayerSkills skills) {
-        // Determine if skill is unlocked, affordable, or locked
-        boolean unlocked = skills.hasSkill(skill.getTree(), skill.getTier());
+        // Determine if THIS SPECIFIC skill is unlocked (not just any skill in the tier)
+        String unlockedSkillName = skills.getSkill(skill.getTree(), skill.getTier());
+        boolean unlocked = (unlockedSkillName != null && unlockedSkillName.equals(skill.getInternalName()));
+        boolean tierHasSkill = skills.hasSkill(skill.getTree(), skill.getTier());
         boolean canAfford = skills.canAfford(skill.getTier());
         boolean hasPrereq = skills.hasPrerequisite(skill.getTree(), skill.getTier());
-        boolean canUnlock = canAfford && hasPrereq && !unlocked;
+        boolean canUnlock = canAfford && hasPrereq && !tierHasSkill;
 
         // Choose material and color based on state
         Material material;
@@ -213,6 +215,10 @@ public class SkillTreeGUI {
         if (unlocked) {
             material = getSkillMaterial(skill, true, false);
             nameColor = ChatColor.GREEN;
+        } else if (tierHasSkill) {
+            // Another skill in this tier is already unlocked
+            material = Material.BLACK_STAINED_GLASS_PANE;  // Black = tier occupied
+            nameColor = ChatColor.DARK_GRAY;
         } else if (canUnlock) {
             material = getSkillMaterial(skill, false, true);
             nameColor = ChatColor.YELLOW;
@@ -255,6 +261,9 @@ public class SkillTreeGUI {
         // Status and instructions
         if (unlocked) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "✓ UNLOCKED");
+        } else if (tierHasSkill) {
+            // Show which skill is unlocked in this tier
+            lore.add(ChatColor.DARK_GRAY + "⚠ Tier occupied by: " + ChatColor.GRAY + unlockedSkillName);
         } else if (canUnlock) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to unlock!");
         } else if (!hasPrereq) {
