@@ -259,7 +259,7 @@ public class AdminCommand implements CommandExecutor {
                 plugin.getTeamManager().saveTeam(reactivateTeam);
 
                 // Broadcast to server
-                Bukkit.broadcastMessage(MessageUtils.colorize("&6&l[!] " + reactivateTeam.getColoredName() +
+                Bukkit.broadcastMessage(MessageUtils.color("&6&l[!] " + reactivateTeam.getColoredName() +
                     " &6&lhas been REACTIVATED by an admin!"));
 
                 MessageUtils.sendSuccess(sender, "Reactivated " + reactivateTeam.getColoredName() + " &a(admin)");
@@ -376,12 +376,12 @@ public class AdminCommand implements CommandExecutor {
                 // 2. Reset all teams
                 MessageUtils.sendMessage(sender, "&7[2/6] Resetting all teams...");
                 for (int teamId = 1; teamId <= 5; teamId++) {
-                    TeamData team = plugin.getTeamManager().getTeam(teamId);
-                    if (team != null) {
-                        team.setQuestPoints(0);
-                        team.setEliminated(false);
-                        team.getControlledTerritories().clear();
-                        plugin.getTeamManager().saveTeam(team);
+                    TeamData resetTeam = plugin.getTeamManager().getTeam(teamId);
+                    if (resetTeam != null) {
+                        resetTeam.setQuestPoints(0);
+                        resetTeam.setEliminated(false);
+                        resetTeam.getControlledTerritories().clear();
+                        plugin.getTeamManager().saveTeam(resetTeam);
                     }
                 }
 
@@ -404,7 +404,7 @@ public class AdminCommand implements CommandExecutor {
                 GameState gameState = plugin.getGameManager().getGameState();
                 gameState.setCurrentSeason(Season.SPRING);
                 gameState.setCurrentCycle(1);
-                gameState.setDayInSeason(0);
+                gameState.setSeasonStartDate(java.time.LocalDate.now());
                 plugin.getDifficultyManager().stopApocalypse();
                 plugin.getSeasonManager().applySeason(Season.SPRING);
                 plugin.getDifficultyManager().applyCycleScaling(1);
@@ -435,11 +435,11 @@ public class AdminCommand implements CommandExecutor {
                 MessageUtils.sendMessage(sender, "&7Reset " + onlinePlayers + " online players");
 
                 // Broadcast to all players
-                Bukkit.broadcastMessage(MessageUtils.colorize(""));
-                Bukkit.broadcastMessage(MessageUtils.colorize("&c&l⚠ GAME HAS BEEN COMPLETELY RESET ⚠"));
-                Bukkit.broadcastMessage(MessageUtils.colorize("&7All progress, skills, XP, and stats have been wiped."));
-                Bukkit.broadcastMessage(MessageUtils.colorize("&7The game has restarted from the beginning."));
-                Bukkit.broadcastMessage(MessageUtils.colorize(""));
+                Bukkit.broadcastMessage(MessageUtils.color(""));
+                Bukkit.broadcastMessage(MessageUtils.color("&c&l⚠ GAME HAS BEEN COMPLETELY RESET ⚠"));
+                Bukkit.broadcastMessage(MessageUtils.color("&7All progress, skills, XP, and stats have been wiped."));
+                Bukkit.broadcastMessage(MessageUtils.color("&7The game has restarted from the beginning."));
+                Bukkit.broadcastMessage(MessageUtils.color(""));
 
                 plugin.getLogger().warning(sender.getName() + " performed a complete game reset!");
                 break;
