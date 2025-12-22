@@ -42,6 +42,7 @@ public class AdminCommand implements CommandExecutor {
             MessageUtils.sendMessage(sender, "&e/soc teams &7- View team status");
             MessageUtils.sendMessage(sender, "&e/soc gameinfo &7- View game state");
             MessageUtils.sendMessage(sender, "&e/soc event <trigger|stop|list|info> &7- Manage world events");
+            MessageUtils.sendMessage(sender, "&e/soc skills <subcommand> &7- Manage player skills/XP");
             return true;
         }
 
@@ -306,6 +307,10 @@ public class AdminCommand implements CommandExecutor {
                 handleEventCommand(sender, args);
                 break;
 
+            case "skills":
+                handleSkillsCommand(sender, args);
+                break;
+
             default:
                 MessageUtils.sendError(sender, "Unknown subcommand: " + args[0]);
         }
@@ -470,6 +475,286 @@ public class AdminCommand implements CommandExecutor {
                 MessageUtils.sendMessage(sender, "&7• Summer Only: &aYes");
                 MessageUtils.sendMessage(sender, "&7• Flame particles");
                 break;
+        }
+    }
+
+    /**
+     * Handle skills subcommands
+     */
+    private void handleSkillsCommand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            MessageUtils.sendMessage(sender, "&6=== Skill Admin Commands ===");
+            MessageUtils.sendMessage(sender, "&e/soc skills give <player> <amount> &7- Give skill points");
+            MessageUtils.sendMessage(sender, "&e/soc skills set <player> <amount> &7- Set skill points");
+            MessageUtils.sendMessage(sender, "&e/soc skills reset <player> [tree] &7- Force reset (free)");
+            MessageUtils.sendMessage(sender, "&e/soc skills unlock <player> <skill> &7- Force unlock skill");
+            MessageUtils.sendMessage(sender, "&e/soc skills info <player> &7- View player's skills");
+            MessageUtils.sendMessage(sender, "&e/soc skills clearall &7- Reset all players' skills");
+            MessageUtils.sendMessage(sender, "&e/soc skills givexp <player> <amount> &7- Give XP to player");
+            MessageUtils.sendMessage(sender, "&e/soc skills reload &7- Reload skill configs");
+            return;
+        }
+
+        switch (args[1].toLowerCase()) {
+            case "give":
+                if (args.length < 4) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills give <player> <amount>");
+                    return;
+                }
+
+                Player targetGive = Bukkit.getPlayer(args[2]);
+                if (targetGive == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                try {
+                    int amount = Integer.parseInt(args[3]);
+                    if (amount <= 0) {
+                        MessageUtils.sendError(sender, "Amount must be positive!");
+                        return;
+                    }
+
+                    com.seasonsofconflict.models.PlayerSkills skills =
+                        plugin.getSkillManager().getPlayerSkills(targetGive.getUniqueId());
+                    skills.addSkillPoints(amount);
+                    plugin.getSkillManager().savePlayerSkills(skills);
+
+                    MessageUtils.sendSuccess(sender, "Gave " + targetGive.getName() + " +" + amount + " skill points");
+                    MessageUtils.sendSuccess(targetGive, "You received +" + amount + " skill points from an admin!");
+                    plugin.getLogger().info(sender.getName() + " gave " + targetGive.getName() + " " + amount + " skill points");
+                } catch (NumberFormatException e) {
+                    MessageUtils.sendError(sender, "Invalid amount: " + args[3]);
+                }
+                break;
+
+            case "set":
+                if (args.length < 4) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills set <player> <amount>");
+                    return;
+                }
+
+                Player targetSet = Bukkit.getPlayer(args[2]);
+                if (targetSet == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                try {
+                    int amount = Integer.parseInt(args[3]);
+                    if (amount < 0) {
+                        MessageUtils.sendError(sender, "Amount cannot be negative!");
+                        return;
+                    }
+
+                    com.seasonsofconflict.models.PlayerSkills skills =
+                        plugin.getSkillManager().getPlayerSkills(targetSet.getUniqueId());
+                    int current = skills.getSkillPointsAvailable();
+                    int diff = amount - current;
+                    if (diff > 0) {
+                        skills.addSkillPoints(diff);
+                    } else if (diff < 0) {
+                        skills.spendSkillPoints(-diff);
+                    }
+                    plugin.getSkillManager().savePlayerSkills(skills);
+
+                    MessageUtils.sendSuccess(sender, "Set " + targetSet.getName() + "'s skill points to " + amount);
+                    MessageUtils.sendMessage(targetSet, "&eYour skill points were set to " + amount + " by an admin");
+                    plugin.getLogger().info(sender.getName() + " set " + targetSet.getName() + "'s skill points to " + amount);
+                } catch (NumberFormatException e) {
+                    MessageUtils.sendError(sender, "Invalid amount: " + args[3]);
+                }
+                break;
+
+            case "reset":
+                if (args.length < 3) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills reset <player> [tree]");
+                    return;
+                }
+
+                Player targetReset = Bukkit.getPlayer(args[2]);
+                if (targetReset == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                if (args.length >= 4) {
+                    // Reset specific tree
+                    try {
+                        com.seasonsofconflict.models.SkillTree tree =
+                            com.seasonsofconflict.models.SkillTree.valueOf(args[3].toUpperCase());
+                        plugin.getSkillManager().resetTree(targetReset.getUniqueId(), tree, 0); // Free admin reset
+                        MessageUtils.sendSuccess(sender, "Reset " + targetReset.getName() + "'s " +
+                            tree.getDisplayName() + " tree (admin)");
+                        MessageUtils.sendMessage(targetReset, "&eYour " + tree.getDisplayName() +
+                            " tree was reset by an admin");
+                        plugin.getLogger().info(sender.getName() + " reset " + targetReset.getName() +
+                            "'s " + tree.name() + " tree");
+                    } catch (IllegalArgumentException e) {
+                        MessageUtils.sendError(sender, "Invalid tree! Use: COMBAT, GATHERING, SURVIVAL, TEAMWORK");
+                    }
+                } else {
+                    // Reset all trees
+                    plugin.getSkillManager().resetAllTrees(targetReset.getUniqueId(), 0); // Free admin reset
+                    MessageUtils.sendSuccess(sender, "Reset ALL of " + targetReset.getName() + "'s skills (admin)");
+                    MessageUtils.sendMessage(targetReset, "&eAll your skills were reset by an admin");
+                    plugin.getLogger().info(sender.getName() + " reset all of " + targetReset.getName() + "'s skills");
+                }
+                break;
+
+            case "unlock":
+                if (args.length < 4) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills unlock <player> <skill_name>");
+                    MessageUtils.sendMessage(sender, "&7Example: /soc skills unlock Steve swift_strikes");
+                    return;
+                }
+
+                Player targetUnlock = Bukkit.getPlayer(args[2]);
+                if (targetUnlock == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                String skillName = args[3].toLowerCase();
+                // Find skill by internal name
+                com.seasonsofconflict.models.Skill skill = null;
+                for (com.seasonsofconflict.models.Skill s : com.seasonsofconflict.models.Skill.values()) {
+                    if (s.getInternalName().equalsIgnoreCase(skillName) || s.name().equalsIgnoreCase(skillName)) {
+                        skill = s;
+                        break;
+                    }
+                }
+
+                if (skill == null) {
+                    MessageUtils.sendError(sender, "Unknown skill: " + skillName);
+                    MessageUtils.sendMessage(sender, "&7Use skill internal names (e.g., swift_strikes)");
+                    return;
+                }
+
+                com.seasonsofconflict.models.PlayerSkills skills =
+                    plugin.getSkillManager().getPlayerSkills(targetUnlock.getUniqueId());
+
+                // Force unlock (bypass restrictions)
+                skills.forceUnlockSkill(skill.getTree(), skill.getTier(), skill.getInternalName());
+                plugin.getSkillManager().savePlayerSkills(skills);
+
+                MessageUtils.sendSuccess(sender, "Force unlocked " + skill.getDisplayName() +
+                    " for " + targetUnlock.getName());
+                MessageUtils.sendMessage(targetUnlock, "&eYou received skill: " + skill.getDisplayName() +
+                    " &e(admin grant)");
+                plugin.getLogger().info(sender.getName() + " force-unlocked " + skill.name() +
+                    " for " + targetUnlock.getName());
+                break;
+
+            case "info":
+                if (args.length < 3) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills info <player>");
+                    return;
+                }
+
+                Player targetInfo = Bukkit.getPlayer(args[2]);
+                if (targetInfo == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                com.seasonsofconflict.models.PlayerSkills skillsInfo =
+                    plugin.getSkillManager().getPlayerSkills(targetInfo.getUniqueId());
+                com.seasonsofconflict.managers.XPManager.PlayerXPData xpData =
+                    plugin.getXPManager().getPlayerXP(targetInfo.getUniqueId());
+
+                MessageUtils.sendMessage(sender, "&6&l=== " + targetInfo.getName() + "'s Skills ===");
+                MessageUtils.sendMessage(sender, "&eSkill Points: &f" + skillsInfo.getSkillPointsAvailable() +
+                    " available, " + skillsInfo.getSkillPointsSpent() + " spent");
+                MessageUtils.sendMessage(sender, "&eXP: &f" + xpData.getTotalXP() + " total, " +
+                    xpData.getCurrentXP() + "/" + plugin.getXPManager().getXPForSkillPoint() + " to next point");
+                MessageUtils.sendMessage(sender, "&eUltimates: &f" + skillsInfo.getUltimateCount() + "/2");
+                MessageUtils.sendMessage(sender, "");
+
+                for (com.seasonsofconflict.models.SkillTree tree : com.seasonsofconflict.models.SkillTree.values()) {
+                    int pointsSpent = skillsInfo.getPointsSpentInTree(tree);
+                    boolean hasUltimate = skillsInfo.hasSkill(tree, com.seasonsofconflict.models.SkillTier.ULTIMATE);
+                    String ultimateStr = hasUltimate ? "&a✓" : "&7✗";
+
+                    MessageUtils.sendMessage(sender, tree.getIcon() + " &e" + tree.getDisplayName() +
+                        " &7(" + pointsSpent + " pts) " + ultimateStr);
+
+                    // List unlocked skills in this tree
+                    StringBuilder unlockedSkills = new StringBuilder("   &7Skills: &f");
+                    boolean hasAny = false;
+                    for (com.seasonsofconflict.models.Skill s : com.seasonsofconflict.models.Skill.values()) {
+                        if (s.getTree() == tree && skillsInfo.hasSkill(tree, s.getTier())) {
+                            if (hasAny) unlockedSkills.append(", ");
+                            unlockedSkills.append(s.getDisplayName());
+                            hasAny = true;
+                        }
+                    }
+                    if (!hasAny) unlockedSkills.append("&7None");
+                    MessageUtils.sendMessage(sender, unlockedSkills.toString());
+                }
+                break;
+
+            case "clearall":
+                MessageUtils.sendMessage(sender, "&c&lWARNING: &7This will reset ALL players' skills!");
+                MessageUtils.sendMessage(sender, "&7To confirm, type: &e/soc skills confirmclearall");
+                break;
+
+            case "confirmclearall":
+                int count = 0;
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    plugin.getSkillManager().resetAllTrees(p.getUniqueId(), 0);
+                    count++;
+                }
+                MessageUtils.sendSuccess(sender, "Reset skills for " + count + " online players");
+                MessageUtils.broadcastRaw("&c&l⚠ &eAll player skills have been reset by an admin! &c&l⚠");
+                plugin.getLogger().warning(sender.getName() + " reset all player skills (clearall)");
+                break;
+
+            case "givexp":
+                if (args.length < 4) {
+                    MessageUtils.sendError(sender, "Usage: /soc skills givexp <player> <amount>");
+                    return;
+                }
+
+                Player targetXP = Bukkit.getPlayer(args[2]);
+                if (targetXP == null) {
+                    MessageUtils.sendError(sender, "Player not found: " + args[2]);
+                    return;
+                }
+
+                try {
+                    int xpAmount = Integer.parseInt(args[3]);
+                    if (xpAmount <= 0) {
+                        MessageUtils.sendError(sender, "XP amount must be positive!");
+                        return;
+                    }
+
+                    int skillPoints = plugin.getXPManager().addXP(targetXP.getUniqueId(), xpAmount);
+
+                    MessageUtils.sendSuccess(sender, "Gave " + targetXP.getName() + " +" + xpAmount + " XP");
+                    if (skillPoints > 0) {
+                        MessageUtils.sendMessage(sender, "&a└─ Earned " + skillPoints + " skill point(s)!");
+                        MessageUtils.sendSuccess(targetXP, "You received +" + xpAmount + " XP and earned " +
+                            skillPoints + " skill point(s)!");
+                    } else {
+                        MessageUtils.sendMessage(targetXP, "&eYou received +" + xpAmount + " XP from an admin");
+                    }
+
+                    plugin.getLogger().info(sender.getName() + " gave " + targetXP.getName() + " " + xpAmount + " XP");
+                } catch (NumberFormatException e) {
+                    MessageUtils.sendError(sender, "Invalid XP amount: " + args[3]);
+                }
+                break;
+
+            case "reload":
+                plugin.getSkillManager().loadConfiguration();
+                MessageUtils.sendSuccess(sender, "Reloaded skill configuration!");
+                plugin.getLogger().info(sender.getName() + " reloaded skill configs");
+                break;
+
+            default:
+                MessageUtils.sendError(sender, "Unknown skills subcommand: " + args[1]);
+                MessageUtils.sendMessage(sender, "&7Use '/soc skills' for help");
         }
     }
 

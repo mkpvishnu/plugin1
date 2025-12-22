@@ -151,6 +151,7 @@ public class SeasonsOfConflict extends JavaPlugin {
     }
 
     private void registerCommands() {
+        // Register command executors
         getCommand("team").setExecutor(new TeamCommand(this));
         getCommand("quest").setExecutor(new QuestCommand(this));
         getCommand("territory").setExecutor(new TerritoryCommand(this));
@@ -161,6 +162,17 @@ public class SeasonsOfConflict extends JavaPlugin {
         getCommand("soc").setExecutor(new AdminCommand(this));
         getCommand("compass").setExecutor(new CompassCommand(this));
         getCommand("skills").setExecutor(new SkillsCommand(this));
+
+        // Register tab completers
+        getCommand("team").setTabCompleter(new com.seasonsofconflict.tabcompleters.TeamCommandTabCompleter());
+        getCommand("quest").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("quest"));
+        getCommand("territory").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("territory"));
+        getCommand("revive").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("revive"));
+        getCommand("shop").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("shop"));
+        getCommand("stats").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("stats"));
+        getCommand("leaderboard").setTabCompleter(new com.seasonsofconflict.tabcompleters.GeneralTabCompleter("leaderboard"));
+        getCommand("soc").setTabCompleter(new com.seasonsofconflict.tabcompleters.AdminCommandTabCompleter(this));
+        getCommand("skills").setTabCompleter(new com.seasonsofconflict.tabcompleters.SkillsCommandTabCompleter());
     }
 
     private void startTasks() {

@@ -67,7 +67,8 @@ public class SkillGUIListener implements Listener {
             stripped.contains("Combat Tree") ||
             stripped.contains("Gathering Tree") ||
             stripped.contains("Survival Tree") ||
-            stripped.contains("Teamwork Tree")
+            stripped.contains("Teamwork Tree") ||
+            stripped.contains("CONFIRM RESET")
         );
     }
 
