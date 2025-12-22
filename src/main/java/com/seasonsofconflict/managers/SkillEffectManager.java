@@ -258,7 +258,8 @@ public class SkillEffectManager {
         if (!hasSkillByName(player, "lumberjack")) {
             return baseDrops;
         }
-        return (int) (baseDrops * 1.5);
+        // +50% more drops: 1 becomes 2, 2 becomes 3, etc.
+        return (int) Math.ceil(baseDrops * 1.5);
     }
 
     /**
@@ -268,7 +269,8 @@ public class SkillEffectManager {
         if (!hasSkillByName(player, "green_thumb")) {
             return baseYield;
         }
-        return (int) (baseYield * 1.2);
+        // +20% more yields: 1 becomes 2, 5 becomes 6, etc.
+        return (int) Math.ceil(baseYield * 1.2);
     }
 
     // ============================================
