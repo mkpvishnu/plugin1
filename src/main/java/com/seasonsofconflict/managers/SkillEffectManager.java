@@ -413,6 +413,109 @@ public class SkillEffectManager {
         return teammates.get(new Random().nextInt(teammates.size()));
     }
 
+    // ============================================
+    // TIER 3-4 PASSIVE SKILLS
+    // ============================================
+
+    /**
+     * Lifesteal: Heal 15% of damage dealt (PvP only)
+     */
+    public double applyLifesteal(Player attacker, double damageDealt, boolean isPvP) {
+        if (!isPvP || !hasSkillByName(attacker, "lifesteal")) {
+            return 0;
+        }
+
+        double healAmount = damageDealt * 0.15;
+        attacker.setHealth(Math.min(attacker.getHealth() + healAmount, attacker.getMaxHealth()));
+        return healAmount;
+    }
+
+    /**
+     * Titan's Grip: Apply +10% damage and knockback resistance
+     */
+    public double applyTitansGrip(Player player, double baseDamage) {
+        if (!hasSkillByName(player, "titans_grip")) {
+            return baseDamage;
+        }
+        return baseDamage * 1.10;
+    }
+
+    public void applyTitansGripKnockbackRes(Player player) {
+        if (!hasSkillByName(player, "titans_grip")) {
+            return;
+        }
+        // Apply knockback resistance via attribute
+        var knockbackRes = player.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+        if (knockbackRes != null) {
+            knockbackRes.setBaseValue(knockbackRes.getBaseValue() + 0.30);
+        }
+    }
+
+    /**
+     * Poison/Wither Immunity: Check if immune
+     */
+    public boolean hasPoisonWitherImmunity(Player player) {
+        return hasSkillByName(player, "poison_wither_immunity");
+    }
+
+    /**
+     * Winter Adaptation: Check if immune to freezing, get damage bonus in Winter
+     */
+    public boolean hasWinterAdaptation(Player player) {
+        return hasSkillByName(player, "winter_adaptation");
+    }
+
+    /**
+     * Thorns: Reflect damage back to attacker
+     */
+    public double applyThorns(Player defender, double damageReceived) {
+        if (!hasSkillByName(defender, "thorns")) {
+            return 0;
+        }
+        return damageReceived * 0.20; // 20% reflected
+    }
+
+    /**
+     * Unstoppable: Check if immune to debuffs
+     */
+    public boolean isUnstoppable(Player player) {
+        return hasSkillByName(player, "unstoppable");
+    }
+
+    /**
+     * Combat Medic: Apply revival discount
+     */
+    public double applyCombatMedicDiscount(Player healer, double baseCost) {
+        if (!hasSkillByName(healer, "combat_medic")) {
+            return baseCost;
+        }
+        return baseCost * 0.75; // 25% discount
+    }
+
+    /**
+     * Inspirational Leader: Apply XP and gathering bonuses to nearby teammates
+     */
+    public boolean isNearInspirationalLeader(Player player) {
+        // Check if any teammate within 50 blocks has Inspirational Leader
+        return player.getWorld().getPlayers().stream()
+            .filter(p -> !p.equals(player))
+            .filter(p -> p.getLocation().distance(player.getLocation()) <= 50.0)
+            .filter(p -> {
+                var playerTeam = plugin.getGameManager().getPlayerData(player);
+                var otherTeam = plugin.getGameManager().getPlayerData(p);
+                return playerTeam != null && otherTeam != null &&
+                       playerTeam.getTeamId() == otherTeam.getTeamId();
+            })
+            .anyMatch(p -> hasSkillByName(p, "inspirational_leader"));
+    }
+
+    /**
+     * Strategic Mind: Check if player has this skill (enables seeing teammates through walls)
+     */
+    public boolean hasStrategicMind(Player player) {
+        return hasSkillByName(player, "strategic_mind");
+    }
+
     /**
      * Bloodlust stack data
      */
