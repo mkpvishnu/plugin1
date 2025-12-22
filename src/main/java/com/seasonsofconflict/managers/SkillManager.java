@@ -171,8 +171,9 @@ public class SkillManager {
     private PlayerSkills loadPlayerSkills(UUID playerUUID) {
         String sql = "SELECT * FROM player_skills WHERE player_uuid = ?";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, playerUUID.toString());
             ResultSet rs = pstmt.executeQuery();
@@ -244,8 +245,9 @@ public class SkillManager {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, skills.getPlayerUUID().toString());
             pstmt.setInt(2, skills.getSkillPointsAvailable());

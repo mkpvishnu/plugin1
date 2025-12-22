@@ -126,8 +126,9 @@ public class CooldownManager {
     public void loadCooldowns(UUID playerUUID) {
         String query = "SELECT skill_name, cooldown_end FROM skill_cooldowns WHERE player_uuid = ? AND cooldown_end > ?";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, playerUUID.toString());
             stmt.setLong(2, System.currentTimeMillis());
@@ -156,8 +157,9 @@ public class CooldownManager {
     private void saveCooldownToDatabase(UUID playerUUID, String skillName, long expiryTime) {
         String query = "INSERT OR REPLACE INTO skill_cooldowns (player_uuid, skill_name, cooldown_end) VALUES (?, ?, ?)";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, playerUUID.toString());
             stmt.setString(2, skillName);
@@ -175,8 +177,9 @@ public class CooldownManager {
     private void clearCooldownsFromDatabase(UUID playerUUID) {
         String query = "DELETE FROM skill_cooldowns WHERE player_uuid = ?";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, playerUUID.toString());
             stmt.executeUpdate();
@@ -192,8 +195,9 @@ public class CooldownManager {
     private void removeCooldownFromDatabase(UUID playerUUID, String skillName) {
         String query = "DELETE FROM skill_cooldowns WHERE player_uuid = ? AND skill_name = ?";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, playerUUID.toString());
             stmt.setString(2, skillName);
@@ -216,8 +220,9 @@ public class CooldownManager {
 
         // Clean database
         String query = "DELETE FROM skill_cooldowns WHERE cooldown_end <= ?";
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setLong(1, currentTime);
             stmt.executeUpdate();
