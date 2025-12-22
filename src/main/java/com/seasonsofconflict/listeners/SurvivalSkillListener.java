@@ -65,24 +65,25 @@ public class SurvivalSkillListener implements Listener {
             );
         }
 
-        // Fire Immunity: Negate fire/lava damage
-        if ((cause == EntityDamageEvent.DamageCause.FIRE ||
-             cause == EntityDamageEvent.DamageCause.FIRE_TICK ||
-             cause == EntityDamageEvent.DamageCause.LAVA) &&
-            effectManager.hasFireImmunity(player)) {
+        // Fire Resistance: 80% reduction to fire/lava damage
+        if (cause == EntityDamageEvent.DamageCause.FIRE ||
+            cause == EntityDamageEvent.DamageCause.FIRE_TICK ||
+            cause == EntityDamageEvent.DamageCause.LAVA) {
 
-            event.setCancelled(true);
-            player.setFireTicks(0);
+            double reducedDamage = effectManager.applyFireResistance(player, damage);
 
-            // Visual: Fire resistance particles
-            player.getWorld().spawnParticle(
-                Particle.DRIP_WATER,
-                player.getLocation().add(0, 1, 0),
-                15,
-                0.3, 0.5, 0.3,
-                0.05
-            );
-            return;
+            if (reducedDamage != damage) {
+                damage = reducedDamage;
+
+                // Visual: Fire resistance particles
+                player.getWorld().spawnParticle(
+                    Particle.DRIP_WATER,
+                    player.getLocation().add(0, 1, 0),
+                    10,
+                    0.3, 0.5, 0.3,
+                    0.05
+                );
+            }
         }
 
         // Fall Damage Negation: Reduce/negate fall damage

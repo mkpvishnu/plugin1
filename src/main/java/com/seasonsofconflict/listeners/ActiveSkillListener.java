@@ -484,6 +484,13 @@ public class ActiveSkillListener implements Listener {
      * Tactical Retreat: Teleport to home beacon with teammate
      */
     private void activateTacticalRetreat(Player player) {
+        // Check if player is in combat
+        if (!effectManager.isOutOfCombat(player)) {
+            MessageUtils.sendMessage(player, "&cCannot use Tactical Retreat while in combat!");
+            cooldownManager.clearCooldown(player.getUniqueId(), "tactical_retreat");
+            return;
+        }
+
         Location homeBeacon = getHomeBeaconLocation(player);
         if (homeBeacon == null) {
             MessageUtils.sendMessage(player, "&cCouldn't find home beacon!");

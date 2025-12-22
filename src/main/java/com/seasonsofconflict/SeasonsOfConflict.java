@@ -143,6 +143,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         // Survival skill effects listener
         survivalSkillListener = new SurvivalSkillListener(this);
         getServer().getPluginManager().registerEvents(survivalSkillListener, this);
+        // Potion effect resistance listener (for survival skills)
+        getServer().getPluginManager().registerEvents(new PotionEffectListener(this), this);
         // Teamwork skill effects listener
         getServer().getPluginManager().registerEvents(new TeamworkSkillListener(this), this);
         // Active skill listener

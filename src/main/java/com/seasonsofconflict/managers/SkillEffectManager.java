@@ -321,10 +321,13 @@ public class SkillEffectManager {
     }
 
     /**
-     * Fire Immunity: Check if player is immune to fire/lava
+     * Fire Resistance: 80% resistance to fire/lava damage
      */
-    public boolean hasFireImmunity(Player player) {
-        return hasSkillByName(player, "fire_immunity");
+    public double applyFireResistance(Player player, double damage) {
+        if (!hasSkillByName(player, "fire_resistance")) {
+            return damage;
+        }
+        return damage * 0.20; // 80% reduction
     }
 
     /**
@@ -454,10 +457,23 @@ public class SkillEffectManager {
     }
 
     /**
-     * Poison/Wither Immunity: Check if immune
+     * Poison/Wither Resistance: 90% reduced duration, 75% reduced damage
      */
-    public boolean hasPoisonWitherImmunity(Player player) {
-        return hasSkillByName(player, "poison_wither_immunity");
+    public double applyPoisonWitherResistance(Player player, double damage) {
+        if (!hasSkillByName(player, "poison_wither_resistance")) {
+            return damage;
+        }
+        return damage * 0.25; // 75% damage reduction
+    }
+
+    /**
+     * Get reduced potion effect duration (for Poison/Wither Resistance)
+     */
+    public int getReducedPotionDuration(Player player, int baseDuration) {
+        if (!hasSkillByName(player, "poison_wither_resistance")) {
+            return baseDuration;
+        }
+        return (int) (baseDuration * 0.10); // 90% duration reduction
     }
 
     /**
@@ -478,9 +494,19 @@ public class SkillEffectManager {
     }
 
     /**
-     * Unstoppable: Check if immune to debuffs
+     * Unstoppable: 75% reduced duration of debuffs
      */
-    public boolean isUnstoppable(Player player) {
+    public int getUnstoppableDebuffDuration(Player player, int baseDuration) {
+        if (!hasSkillByName(player, "unstoppable")) {
+            return baseDuration;
+        }
+        return (int) (baseDuration * 0.25); // 75% duration reduction
+    }
+
+    /**
+     * Check if player has Unstoppable (for knockback resistance)
+     */
+    public boolean hasUnstoppable(Player player) {
         return hasSkillByName(player, "unstoppable");
     }
 

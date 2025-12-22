@@ -143,7 +143,7 @@ public enum Skill {
     FORTUNES_TOUCH(
         "Fortune's Touch",
         "fortunes_touch",
-        "+15% chance for double drops (ores/logs/crops)",
+        "15% chance for double drops (ores/logs/crops)",
         SkillTree.GATHERING,
         SkillTier.TIER_1,
         SkillType.PASSIVE,
@@ -161,7 +161,7 @@ public enum Skill {
     PROSPECTOR(
         "Prospector",
         "prospector",
-        "+20% bonus drops from iron/gold/coal ores",
+        "20% chance for double drops from iron/gold/coal ores",
         SkillTree.GATHERING,
         SkillTier.TIER_1,
         SkillType.PASSIVE,
@@ -181,7 +181,7 @@ public enum Skill {
     GREEN_THUMB(
         "Green Thumb",
         "green_thumb",
-        "Crops planted by you grow 25% faster, +20% yields",
+        "Your crops grow 25% faster, 20% chance for bonus harvest",
         SkillTree.GATHERING,
         SkillTier.TIER_2,
         SkillType.PASSIVE,
@@ -190,7 +190,7 @@ public enum Skill {
     LUMBERJACK(
         "Lumberjack",
         "lumberjack",
-        "Trees drop 50% more wood, breaking bottom log fells tree",
+        "Trees drop +50% more wood, breaking bottom log fells entire tree",
         SkillTree.GATHERING,
         SkillTier.TIER_2,
         SkillType.PASSIVE,
@@ -307,10 +307,10 @@ public enum Skill {
         SkillType.PASSIVE,
         Material.GLISTERING_MELON_SLICE
     ),
-    FIRE_IMMUNITY(
-        "Fire Immunity",
-        "fire_immunity",
-        "Immune to fire/lava damage (still burning DoT after exit)",
+    FIRE_RESISTANCE(
+        "Fire Resistance",
+        "fire_resistance",
+        "80% resistance to fire/lava damage",
         SkillTree.SURVIVAL,
         SkillTier.TIER_2,
         SkillType.PASSIVE,
@@ -330,16 +330,16 @@ public enum Skill {
     SECOND_WIND(
         "Second Wind",
         "second_wind",
-        "Below 5 hearts: instantly heal 10 hearts (5 min cooldown)",
+        "Below 5 hearts: instantly heal 5 hearts (5 min cooldown)",
         SkillTree.SURVIVAL,
         SkillTier.TIER_3,
         SkillType.PASSIVE,
         Material.TOTEM_OF_UNDYING
     ),
-    POISON_WITHER_IMMUNITY(
-        "Poison/Wither Immunity",
-        "poison_wither_immunity",
-        "Immune to poison and wither effects",
+    POISON_WITHER_RESISTANCE(
+        "Poison/Wither Resistance",
+        "poison_wither_resistance",
+        "90% reduced duration and 75% reduced damage from poison/wither",
         SkillTree.SURVIVAL,
         SkillTier.TIER_3,
         SkillType.PASSIVE,
@@ -377,7 +377,7 @@ public enum Skill {
     UNSTOPPABLE(
         "Unstoppable",
         "unstoppable",
-        "Immune to slowness/weakness/mining fatigue, -30% knockback",
+        "75% reduced duration of slowness/weakness/mining fatigue, -30% knockback",
         SkillTree.SURVIVAL,
         SkillTier.TIER_4,
         SkillType.PASSIVE,
@@ -459,7 +459,7 @@ public enum Skill {
     TACTICAL_RETREAT(
         "Tactical Retreat",
         "tactical_retreat",
-        "Teleport to home beacon, can bring 1 teammate within 3 blocks (5 min cooldown)",
+        "Teleport to home beacon, can bring 1 teammate within 3 blocks (5 min cooldown, cannot use in combat)",
         SkillTree.TEAMWORK,
         SkillTier.TIER_3,
         SkillType.ACTIVE,
