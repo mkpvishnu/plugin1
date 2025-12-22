@@ -158,14 +158,14 @@ public enum Skill {
         SkillType.PASSIVE,
         Material.GOLDEN_PICKAXE
     ),
-    TREASURE_HUNTER(
-        "Treasure Hunter",
-        "treasure_hunter",
-        "See diamond/iron/gold ore glow through walls (8 block range)",
+    PROSPECTOR(
+        "Prospector",
+        "prospector",
+        "+20% bonus drops from iron/gold/coal ores",
         SkillTree.GATHERING,
         SkillTier.TIER_1,
         SkillType.PASSIVE,
-        Material.SPYGLASS
+        Material.IRON_ORE
     ),
 
     // Tier 2 - Master Gatherer (10 pts each)
@@ -201,7 +201,7 @@ public enum Skill {
     DIAMOND_HUNTER(
         "Diamond Hunter",
         "diamond_hunter",
-        "Diamond ore drop rate 10% → 25%, reveal location within 32 blocks",
+        "Diamond ore drop rate increased from 10% → 30%",
         SkillTree.GATHERING,
         SkillTier.TIER_3,
         SkillType.PASSIVE,

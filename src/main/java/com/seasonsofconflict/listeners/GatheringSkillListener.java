@@ -77,6 +77,25 @@ public class GatheringSkillListener implements Listener {
             }
         }
 
+        // Prospector: +20% bonus drops from iron/gold/coal ores
+        if (isCommonOre(blockType) && effectManager.hasSkillByName(player, "prospector")) {
+            // 20% chance for bonus drop
+            if (Math.random() < 0.20) {
+                for (ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand())) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), drop.clone());
+                }
+
+                // Visual: Gold sparkles
+                block.getWorld().spawnParticle(
+                    Particle.VILLAGER_HAPPY,
+                    block.getLocation().add(0.5, 0.5, 0.5),
+                    8,
+                    0.3, 0.3, 0.3,
+                    0.1
+                );
+            }
+        }
+
         // Lumberjack: +50% wood drops + tree felling
         if (isLog(blockType) && effectManager.hasSkillByName(player, "lumberjack")) {
             // Apply +50% wood drops
@@ -139,46 +158,6 @@ public class GatheringSkillListener implements Listener {
         effectManager.applySwiftHands(player);
     }
 
-    /**
-     * Apply Treasure Hunter effect (make ores glow through walls)
-     */
-    public void applyTreasureHunterEffect(Player player) {
-        // Check if player has the skill
-        if (!effectManager.hasSkillByName(player, "treasure_hunter")) {
-            return;
-        }
-
-        // Find all valuable ores within 8 block range
-        int range = 8;
-        Location playerLoc = player.getLocation();
-        World world = player.getWorld();
-
-        for (int x = -range; x <= range; x++) {
-            for (int y = -range; y <= range; y++) {
-                for (int z = -range; z <= range; z++) {
-                    Block block = world.getBlockAt(
-                        playerLoc.getBlockX() + x,
-                        playerLoc.getBlockY() + y,
-                        playerLoc.getBlockZ() + z
-                    );
-
-                    Material type = block.getType();
-
-                    // Only highlight valuable ores
-                    if (isValuableOre(type)) {
-                        // Make it glow for 10 seconds (task runs every 5s, so renew before expiry)
-                        block.getWorld().spawnParticle(
-                            Particle.END_ROD,
-                            block.getLocation().add(0.5, 0.5, 0.5),
-                            2,
-                            0.2, 0.2, 0.2,
-                            0.01
-                        );
-                    }
-                }
-            }
-        }
-    }
 
     /**
      * Check if material is a gatherable resource (ore, log, crop)
@@ -220,18 +199,15 @@ public class GatheringSkillListener implements Listener {
     }
 
     /**
-     * Check if material is a valuable ore (for Treasure Hunter skill)
+     * Check if material is a common ore (for Prospector skill: iron, gold, coal)
      */
-    private boolean isValuableOre(Material material) {
-        return material == Material.DIAMOND_ORE ||
-               material == Material.DEEPSLATE_DIAMOND_ORE ||
-               material == Material.IRON_ORE ||
+    private boolean isCommonOre(Material material) {
+        return material == Material.IRON_ORE ||
                material == Material.DEEPSLATE_IRON_ORE ||
                material == Material.GOLD_ORE ||
                material == Material.DEEPSLATE_GOLD_ORE ||
-               material == Material.EMERALD_ORE ||
-               material == Material.DEEPSLATE_EMERALD_ORE ||
-               material == Material.ANCIENT_DEBRIS;  // Netherite
+               material == Material.COAL_ORE ||
+               material == Material.DEEPSLATE_COAL_ORE;
     }
 
     /**

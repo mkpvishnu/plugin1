@@ -31,9 +31,6 @@ public class PassiveEffectsTask extends BukkitRunnable {
             // Swift Hands: Continuous Haste effect (renewed every 10s)
             gatheringListener.applySwiftHandsEffect(player);
 
-            // Treasure Hunter: Make ores glow through walls
-            gatheringListener.applyTreasureHunterEffect(player);
-
             // Regeneration: 0.5 HP every 5s when out of combat
             // (This task runs every 5s, so perfect timing)
             survivalListener.applyRegeneration(player);

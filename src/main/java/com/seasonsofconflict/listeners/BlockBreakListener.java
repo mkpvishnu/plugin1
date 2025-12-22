@@ -75,6 +75,12 @@ public class BlockBreakListener implements Listener {
             } else if (type == Material.DIAMOND_ORE || type == Material.DEEPSLATE_DIAMOND_ORE) {
                 // Read diamond drop chance from config (default 10%)
                 double dropChance = plugin.getConfig().getDouble("diamond.drop_chance", 0.10);
+
+                // Diamond Hunter skill: Increase drop rate to 30%
+                if (plugin.getSkillEffectManager().hasSkillByName(player, "diamond_hunter")) {
+                    dropChance = 0.30;
+                }
+
                 if (Math.random() > dropChance) {
                     event.setDropItems(false);
                 }
