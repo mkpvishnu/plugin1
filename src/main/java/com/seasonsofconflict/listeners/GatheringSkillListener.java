@@ -38,6 +38,26 @@ public class GatheringSkillListener implements Listener {
         Block block = event.getBlock();
         Material blockType = block.getType();
 
+        // Vein Miner: Break connected ores when primed
+        if (isOre(blockType)) {
+            var activeSkillListener = plugin.getActiveSkillListener();
+            if (activeSkillListener != null && activeSkillListener.isVeinMinerPrimed(player.getUniqueId())) {
+                activeSkillListener.consumeVeinMinerPrime(player.getUniqueId());
+                breakConnectedOres(player, block, blockType, 5);
+
+                // Visual: Chain explosion particles
+                block.getWorld().spawnParticle(
+                    Particle.EXPLOSION_LARGE,
+                    block.getLocation().add(0.5, 0.5, 0.5),
+                    3,
+                    0.5, 0.5, 0.5,
+                    0.1
+                );
+
+                MessageUtils.sendMessage(player, "&6⛏ &eVein Miner triggered!");
+            }
+        }
+
         // Fortune's Touch: +15% chance for double drops
         if (effectManager.applyFortuneTouch(player)) {
             if (isGatherableResource(blockType)) {
@@ -141,5 +161,70 @@ public class GatheringSkillListener implements Listener {
                material == Material.SWEET_BERRY_BUSH ||
                material == Material.MELON ||
                material == Material.PUMPKIN;
+    }
+
+    /**
+     * Check if material is an ore
+     */
+    private boolean isOre(Material material) {
+        return material.name().contains("_ORE");
+    }
+
+    /**
+     * Break connected ores of the same type (Vein Miner)
+     */
+    private void breakConnectedOres(Player player, Block startBlock, Material oreType, int maxOres) {
+        java.util.Set<Block> visited = new java.util.HashSet<>();
+        java.util.Queue<Block> toCheck = new java.util.LinkedList<>();
+        toCheck.add(startBlock);
+        visited.add(startBlock);
+
+        int brokenCount = 0;
+
+        while (!toCheck.isEmpty() && brokenCount < maxOres) {
+            Block current = toCheck.poll();
+
+            // Check all 6 adjacent blocks
+            for (org.bukkit.util.Vector offset : new org.bukkit.util.Vector[]{
+                new org.bukkit.util.Vector(1, 0, 0),
+                new org.bukkit.util.Vector(-1, 0, 0),
+                new org.bukkit.util.Vector(0, 1, 0),
+                new org.bukkit.util.Vector(0, -1, 0),
+                new org.bukkit.util.Vector(0, 0, 1),
+                new org.bukkit.util.Vector(0, 0, -1)
+            }) {
+                Block adjacent = current.getRelative(offset.getBlockX(), offset.getBlockY(), offset.getBlockZ());
+
+                if (!visited.contains(adjacent) && adjacent.getType() == oreType) {
+                    visited.add(adjacent);
+                    toCheck.add(adjacent);
+
+                    // Break the ore and give drops
+                    for (ItemStack drop : adjacent.getDrops(player.getInventory().getItemInMainHand())) {
+                        adjacent.getWorld().dropItemNaturally(adjacent.getLocation(), drop);
+                    }
+                    adjacent.setType(Material.AIR);
+
+                    // Visual: Small explosion particles
+                    adjacent.getWorld().spawnParticle(
+                        Particle.BLOCK_CRACK,
+                        adjacent.getLocation().add(0.5, 0.5, 0.5),
+                        10,
+                        0.3, 0.3, 0.3,
+                        0.1,
+                        adjacent.getBlockData()
+                    );
+
+                    brokenCount++;
+                    if (brokenCount >= maxOres) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (brokenCount > 0) {
+            MessageUtils.sendMessage(player, "&7Vein mined &e" + brokenCount + " &7additional ores!");
+        }
     }
 }
