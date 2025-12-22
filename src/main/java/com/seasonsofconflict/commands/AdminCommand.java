@@ -44,6 +44,7 @@ public class AdminCommand implements CommandExecutor {
             MessageUtils.sendMessage(sender, "&e/soc gameinfo &7- View game state");
             MessageUtils.sendMessage(sender, "&e/soc event <trigger|stop|list|info> &7- Manage world events");
             MessageUtils.sendMessage(sender, "&e/soc skills <subcommand> &7- Manage player skills/XP");
+            MessageUtils.sendMessage(sender, "&c/soc resetall confirm &7- RESET EVERYTHING (requires 'confirm')");
             return true;
         }
 
@@ -340,6 +341,107 @@ public class AdminCommand implements CommandExecutor {
 
             case "skills":
                 handleSkillsCommand(sender, args);
+                break;
+
+            case "resetall":
+                if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
+                    MessageUtils.sendMessage(sender, "&c&l⚠ WARNING: COMPLETE GAME RESET ⚠");
+                    MessageUtils.sendMessage(sender, "");
+                    MessageUtils.sendMessage(sender, "&7This will reset:");
+                    MessageUtils.sendMessage(sender, "&7  • All player skills and XP");
+                    MessageUtils.sendMessage(sender, "&7  • All team points and territories");
+                    MessageUtils.sendMessage(sender, "&7  • All team elimination status");
+                    MessageUtils.sendMessage(sender, "&7  • Game state (season, cycle, apocalypse)");
+                    MessageUtils.sendMessage(sender, "&7  • Player stats (kills, deaths, revivals)");
+                    MessageUtils.sendMessage(sender, "");
+                    MessageUtils.sendMessage(sender, "&c&lThis CANNOT be undone!");
+                    MessageUtils.sendMessage(sender, "");
+                    MessageUtils.sendMessage(sender, "&eTo confirm, use: &c/soc resetall confirm");
+                    return true;
+                }
+
+                // User confirmed - perform complete reset
+                MessageUtils.sendMessage(sender, "&6&l[!] Starting complete game reset...");
+
+                int onlinePlayers = Bukkit.getOnlinePlayers().size();
+
+                // 1. Reset all player skills and XP
+                MessageUtils.sendMessage(sender, "&7[1/6] Resetting player skills and XP...");
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    plugin.getSkillManager().resetAllTrees(p.getUniqueId(), 0); // Free reset
+                    plugin.getXPManager().resetPlayerXP(p.getUniqueId());
+                }
+                plugin.getSkillManager().saveAll();
+
+                // 2. Reset all teams
+                MessageUtils.sendMessage(sender, "&7[2/6] Resetting all teams...");
+                for (int teamId = 1; teamId <= 5; teamId++) {
+                    TeamData team = plugin.getTeamManager().getTeam(teamId);
+                    if (team != null) {
+                        team.setQuestPoints(0);
+                        team.setEliminated(false);
+                        team.getControlledTerritories().clear();
+                        plugin.getTeamManager().saveTeam(team);
+                    }
+                }
+
+                // 3. Reset all territories to neutral
+                MessageUtils.sendMessage(sender, "&7[3/6] Resetting all territories...");
+                for (int territoryId = 1; territoryId <= 5; territoryId++) {
+                    TerritoryData territory = plugin.getTerritoryManager().getTerritory(territoryId);
+                    if (territory != null) {
+                        // Set to original owner from config
+                        int originalOwner = plugin.getConfig().getInt("territories." + territoryId + ".starting_owner", 0);
+                        territory.setOwnerTeamId(originalOwner);
+                        territory.setCaptureProgress(0);
+                        territory.setCapturingTeamId(0);
+                        plugin.getTerritoryManager().saveTerritory(territory);
+                    }
+                }
+
+                // 4. Reset game state
+                MessageUtils.sendMessage(sender, "&7[4/6] Resetting game state...");
+                GameState gameState = plugin.getGameManager().getGameState();
+                gameState.setCurrentSeason(Season.SPRING);
+                gameState.setCurrentCycle(1);
+                gameState.setDayInSeason(0);
+                plugin.getDifficultyManager().stopApocalypse();
+                plugin.getSeasonManager().applySeason(Season.SPRING);
+                plugin.getDifficultyManager().applyCycleScaling(1);
+
+                // 5. Reset all player data
+                MessageUtils.sendMessage(sender, "&7[5/6] Resetting player data...");
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    PlayerData pd = plugin.getGameManager().getPlayerData(p);
+                    pd.setTotalKills(0);
+                    pd.setTotalDeaths(0);
+                    pd.setKillStreak(0);
+                    pd.setBounty(0);
+                    pd.setRevivalsUsed(0);
+                    pd.setAlive(true);
+                    plugin.getGameManager().savePlayerData(p.getUniqueId());
+
+                    // Reset health
+                    p.setGameMode(GameMode.SURVIVAL);
+                    plugin.getHealthManager().setMaxHealth(p);
+                }
+
+                // 6. Save everything
+                MessageUtils.sendMessage(sender, "&7[6/6] Saving all data...");
+                plugin.getDataManager().saveAll();
+
+                // Done!
+                MessageUtils.sendSuccess(sender, "Complete game reset finished!");
+                MessageUtils.sendMessage(sender, "&7Reset " + onlinePlayers + " online players");
+
+                // Broadcast to all players
+                Bukkit.broadcastMessage(MessageUtils.colorize(""));
+                Bukkit.broadcastMessage(MessageUtils.colorize("&c&l⚠ GAME HAS BEEN COMPLETELY RESET ⚠"));
+                Bukkit.broadcastMessage(MessageUtils.colorize("&7All progress, skills, XP, and stats have been wiped."));
+                Bukkit.broadcastMessage(MessageUtils.colorize("&7The game has restarted from the beginning."));
+                Bukkit.broadcastMessage(MessageUtils.colorize(""));
+
+                plugin.getLogger().warning(sender.getName() + " performed a complete game reset!");
                 break;
 
             default:

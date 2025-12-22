@@ -137,6 +137,17 @@ public class XPManager {
     }
 
     /**
+     * Completely reset player's XP (both total and current)
+     */
+    public void resetPlayerXP(UUID playerUUID) {
+        PlayerXPData xpData = getPlayerXP(playerUUID);
+        xpData.setTotalXP(0);
+        xpData.setCurrentXP(0);
+        xpData.setXPMultiplier(1.0);
+        savePlayerXP(xpData);
+    }
+
+    /**
      * Load player XP data from database
      */
     private PlayerXPData loadPlayerXP(UUID playerUUID) {
