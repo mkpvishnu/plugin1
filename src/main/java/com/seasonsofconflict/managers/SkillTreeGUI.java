@@ -473,10 +473,18 @@ public class SkillTreeGUI {
         Skill skill = findSkillByDisplayName(skillNameLine);
         if (skill == null) return true;
 
-        // Check if already unlocked
+        // Check if THIS SPECIFIC skill is already unlocked
         PlayerSkills skills = plugin.getSkillManager().getPlayerSkills(player.getUniqueId());
+        String unlockedSkillName = skills.getSkill(skill.getTree(), skill.getTier());
+        if (unlockedSkillName != null && unlockedSkillName.equals(skill.getInternalName())) {
+            MessageUtils.sendMessage(player, "&cYou already have this skill unlocked!");
+            return true;
+        }
+
+        // Check if tier is occupied by another skill
         if (skills.hasSkill(skill.getTree(), skill.getTier())) {
-            MessageUtils.sendMessage(player, "&cYou already have this skill!");
+            MessageUtils.sendMessage(player, "&cThis tier is already occupied by: &e" + unlockedSkillName);
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return true;
         }
 
@@ -488,6 +496,9 @@ public class SkillTreeGUI {
         if (result.isSuccess()) {
             MessageUtils.sendMessage(player, "&a&l✓ " + result.getMessage());
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
+
+            // Apply skill effects immediately
+            applySkillEffectsImmediately(player, skill);
 
             // Refresh GUI
             openTreeView(player, skill.getTree());
@@ -634,5 +645,30 @@ public class SkillTreeGUI {
         }
 
         return true;
+    }
+
+    /**
+     * Apply skill effects immediately after unlocking
+     */
+    private void applySkillEffectsImmediately(Player player, Skill skill) {
+        // Apply health bonuses immediately
+        switch (skill.getInternalName()) {
+            case "iron_skin":  // Combat: +2 hearts
+                plugin.getSkillEffectManager().applyIronSkin(player);
+                MessageUtils.sendMessage(player, "&a+2 hearts added!");
+                break;
+            case "hardy":  // Survival: +3 hearts
+                plugin.getSkillEffectManager().applyHardy(player);
+                MessageUtils.sendMessage(player, "&a+3 hearts added!");
+                break;
+            case "swift_strikes":  // Combat: +15% attack speed
+                plugin.getSkillEffectManager().applySwiftStrikes(player);
+                MessageUtils.sendMessage(player, "&a+15% attack speed!");
+                break;
+            case "titans_grip":  // Combat: +30% knockback resistance
+                plugin.getSkillEffectManager().applyTitansGripKnockbackRes(player);
+                MessageUtils.sendMessage(player, "&a+30% knockback resistance!");
+                break;
+        }
     }
 }

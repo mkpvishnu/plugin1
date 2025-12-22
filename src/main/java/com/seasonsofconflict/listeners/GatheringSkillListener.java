@@ -77,24 +77,32 @@ public class GatheringSkillListener implements Listener {
             }
         }
 
-        // Lumberjack: +50% wood drops from logs
-        if (isLog(blockType)) {
-            int bonusDrops = effectManager.applyLumberjack(player, 1);
-            if (bonusDrops > 1) {
-                // Add bonus wood drops
-                ItemStack wood = new ItemStack(blockType, bonusDrops - 1);
-                block.getWorld().dropItemNaturally(block.getLocation(), wood);
+        // Lumberjack: +50% wood drops + tree felling
+        if (isLog(blockType) && effectManager.hasSkillByName(player, "lumberjack")) {
+            // Apply +50% wood drops
+            int normalDrops = 1;
+            int bonusDrops = effectManager.applyLumberjack(player, normalDrops);
 
-                // Visual: Falling leaves (using BLOCK_CRACK with leaves)
-                block.getWorld().spawnParticle(
-                    Particle.BLOCK_CRACK,
-                    block.getLocation().add(0.5, 0.5, 0.5),
-                    15,
-                    0.5, 0.5, 0.5,
-                    0.05,
-                    Material.OAK_LEAVES.createBlockData()
-                );
+            if (bonusDrops > normalDrops) {
+                // Add bonus wood drops
+                ItemStack wood = new ItemStack(blockType, bonusDrops - normalDrops);
+                block.getWorld().dropItemNaturally(block.getLocation(), wood);
             }
+
+            // Tree felling: If breaking bottom log, fell entire tree
+            if (isBottomLog(block)) {
+                fellTree(player, block, blockType);
+            }
+
+            // Visual: Falling leaves
+            block.getWorld().spawnParticle(
+                Particle.BLOCK_CRACK,
+                block.getLocation().add(0.5, 0.5, 0.5),
+                15,
+                0.5, 0.5, 0.5,
+                0.05,
+                Material.OAK_LEAVES.createBlockData()
+            );
         }
 
         // Green Thumb: +20% crop yields
@@ -129,6 +137,47 @@ public class GatheringSkillListener implements Listener {
      */
     public void applySwiftHandsEffect(Player player) {
         effectManager.applySwiftHands(player);
+    }
+
+    /**
+     * Apply Treasure Hunter effect (make ores glow through walls)
+     */
+    public void applyTreasureHunterEffect(Player player) {
+        // Check if player has the skill
+        if (!effectManager.hasSkillByName(player, "treasure_hunter")) {
+            return;
+        }
+
+        // Find all valuable ores within 8 block range
+        int range = 8;
+        Location playerLoc = player.getLocation();
+        World world = player.getWorld();
+
+        for (int x = -range; x <= range; x++) {
+            for (int y = -range; y <= range; y++) {
+                for (int z = -range; z <= range; z++) {
+                    Block block = world.getBlockAt(
+                        playerLoc.getBlockX() + x,
+                        playerLoc.getBlockY() + y,
+                        playerLoc.getBlockZ() + z
+                    );
+
+                    Material type = block.getType();
+
+                    // Only highlight valuable ores
+                    if (isValuableOre(type)) {
+                        // Make it glow for 10 seconds (task runs every 5s, so renew before expiry)
+                        block.getWorld().spawnParticle(
+                            Particle.END_ROD,
+                            block.getLocation().add(0.5, 0.5, 0.5),
+                            2,
+                            0.2, 0.2, 0.2,
+                            0.01
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -168,6 +217,21 @@ public class GatheringSkillListener implements Listener {
      */
     private boolean isOre(Material material) {
         return material.name().contains("_ORE");
+    }
+
+    /**
+     * Check if material is a valuable ore (for Treasure Hunter skill)
+     */
+    private boolean isValuableOre(Material material) {
+        return material == Material.DIAMOND_ORE ||
+               material == Material.DEEPSLATE_DIAMOND_ORE ||
+               material == Material.IRON_ORE ||
+               material == Material.DEEPSLATE_IRON_ORE ||
+               material == Material.GOLD_ORE ||
+               material == Material.DEEPSLATE_GOLD_ORE ||
+               material == Material.EMERALD_ORE ||
+               material == Material.DEEPSLATE_EMERALD_ORE ||
+               material == Material.ANCIENT_DEBRIS;  // Netherite
     }
 
     /**
@@ -225,6 +289,81 @@ public class GatheringSkillListener implements Listener {
 
         if (brokenCount > 0) {
             MessageUtils.sendMessage(player, "&7Vein mined &e" + brokenCount + " &7additional ores!");
+        }
+    }
+
+    /**
+     * Check if a log block is at the bottom of a tree
+     */
+    private boolean isBottomLog(Block block) {
+        // Check if there's a non-log block below (ground level)
+        Block below = block.getRelative(0, -1, 0);
+        return !isLog(below.getType());
+    }
+
+    /**
+     * Fell entire tree starting from bottom log
+     */
+    private void fellTree(Player player, Block startBlock, Material logType) {
+        java.util.Set<Block> visited = new java.util.HashSet<>();
+        java.util.Queue<Block> toCheck = new java.util.LinkedList<>();
+        toCheck.add(startBlock);
+        visited.add(startBlock);
+
+        int felledCount = 0;
+        int maxLogs = 128; // Prevent infinite loops on huge structures
+
+        while (!toCheck.isEmpty() && felledCount < maxLogs) {
+            Block current = toCheck.poll();
+
+            // Check all adjacent blocks (including diagonals for branches)
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx == 0 && dy == 0 && dz == 0) continue;
+
+                        Block adjacent = current.getRelative(dx, dy, dz);
+
+                        if (!visited.contains(adjacent) && isLog(adjacent.getType())) {
+                            visited.add(adjacent);
+                            toCheck.add(adjacent);
+
+                            // Apply +50% bonus to each log
+                            int bonusDrops = effectManager.applyLumberjack(player, 1);
+
+                            // Drop the log with bonus
+                            for (int i = 0; i < bonusDrops; i++) {
+                                ItemStack logDrop = new ItemStack(adjacent.getType(), 1);
+                                adjacent.getWorld().dropItemNaturally(adjacent.getLocation(), logDrop);
+                            }
+
+                            // Break the log
+                            adjacent.setType(Material.AIR);
+
+                            // Small leaf particles
+                            if (felledCount % 3 == 0) { // Not every log to reduce lag
+                                adjacent.getWorld().spawnParticle(
+                                    Particle.BLOCK_CRACK,
+                                    adjacent.getLocation().add(0.5, 0.5, 0.5),
+                                    5,
+                                    0.3, 0.3, 0.3,
+                                    0.05,
+                                    Material.OAK_LEAVES.createBlockData()
+                                );
+                            }
+
+                            felledCount++;
+                            if (felledCount >= maxLogs) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (felledCount > 0) {
+            MessageUtils.sendMessage(player, "&6🪓 &eFelled tree: &a" + (felledCount + 1) + " &elogs!");
         }
     }
 }
