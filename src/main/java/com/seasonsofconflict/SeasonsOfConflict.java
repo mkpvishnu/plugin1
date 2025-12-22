@@ -34,6 +34,7 @@ public class SeasonsOfConflict extends JavaPlugin {
     private CompassTrackingListener compassTrackingListener;
     private GatheringSkillListener gatheringSkillListener;
     private SurvivalSkillListener survivalSkillListener;
+    private ActiveSkillListener activeSkillListener;
 
     @Override
     public void onEnable() {
@@ -145,7 +146,8 @@ public class SeasonsOfConflict extends JavaPlugin {
         // Teamwork skill effects listener
         getServer().getPluginManager().registerEvents(new TeamworkSkillListener(this), this);
         // Active skill listener
-        getServer().getPluginManager().registerEvents(new ActiveSkillListener(this), this);
+        activeSkillListener = new ActiveSkillListener(this);
+        getServer().getPluginManager().registerEvents(activeSkillListener, this);
     }
 
     private void registerCommands() {
@@ -275,5 +277,9 @@ public class SeasonsOfConflict extends JavaPlugin {
 
     public CooldownManager getCooldownManager() {
         return cooldownManager;
+    }
+
+    public ActiveSkillListener getActiveSkillListener() {
+        return activeSkillListener;
     }
 }

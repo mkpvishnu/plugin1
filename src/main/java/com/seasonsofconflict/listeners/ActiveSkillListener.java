@@ -621,9 +621,17 @@ public class ActiveSkillListener implements Listener {
         var playerData = plugin.getGameManager().getPlayerData(player);
         if (playerData == null) return null;
 
-        // Get home territory beacon location from config
-        // This is a placeholder - you'd get from TerritoryManager
-        return null; // TODO: Implement
+        // Get player's team
+        var teamData = plugin.getTeamManager().getTeam(playerData.getTeamId());
+        if (teamData == null) return null;
+
+        // Get home territory
+        int homeTerritoryId = teamData.getHomeTerritory();
+        var territory = plugin.getTerritoryManager().getTerritory(homeTerritoryId);
+        if (territory == null) return null;
+
+        // Return beacon location
+        return territory.getBeaconLocation(player.getWorld().getName());
     }
 
     private Player findNearestInjuredTeammate(Player player, double radius) {

@@ -159,6 +159,27 @@ public class CombatSkillListener implements Listener {
             );
         }
 
+        // Apply Titan's Grip (+10% damage)
+        finalDamage = effectManager.applyTitansGrip(attacker, finalDamage);
+
+        // Apply Lifesteal (15% healing from PvP damage)
+        boolean isPvP = target instanceof Player;
+        double healAmount = effectManager.applyLifesteal(attacker, finalDamage, isPvP);
+        if (healAmount > 0) {
+            // Visual: Green particles from victim to attacker
+            org.bukkit.util.Vector direction = attacker.getLocation().toVector().subtract(target.getLocation().toVector()).normalize();
+            for (double d = 0; d < target.getLocation().distance(attacker.getLocation()); d += 0.5) {
+                Location particleLoc = target.getLocation().clone().add(direction.clone().multiply(d));
+                target.getWorld().spawnParticle(
+                    Particle.VILLAGER_HAPPY,
+                    particleLoc,
+                    1,
+                    0, 0, 0,
+                    0
+                );
+            }
+        }
+
         // Set final damage
         if (finalDamage != baseDamage) {
             event.setDamage(finalDamage);
@@ -166,7 +187,7 @@ public class CombatSkillListener implements Listener {
     }
 
     /**
-     * Apply passive stat bonuses (Swift Strikes, Iron Skin)
+     * Apply passive stat bonuses (Swift Strikes, Iron Skin, Titan's Grip)
      */
     private void applyPassiveStatBonuses(Player player) {
         // Reset to base stats first
@@ -177,6 +198,9 @@ public class CombatSkillListener implements Listener {
 
         // Apply Iron Skin (+2 hearts max HP)
         effectManager.applyIronSkin(player);
+
+        // Apply Titan's Grip (+30% knockback resistance)
+        effectManager.applyTitansGripKnockbackRes(player);
     }
 
     /**
