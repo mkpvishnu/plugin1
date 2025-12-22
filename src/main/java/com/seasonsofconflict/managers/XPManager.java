@@ -112,6 +112,13 @@ public class XPManager {
     }
 
     /**
+     * Get XP required for one skill point
+     */
+    public int getXPForSkillPoint() {
+        return xpPerSkillPoint;
+    }
+
+    /**
      * Set XP multiplier for a player (from skills/events)
      */
     public void setXPMultiplier(UUID playerUUID, double multiplier) {
