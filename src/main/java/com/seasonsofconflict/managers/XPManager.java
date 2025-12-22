@@ -142,8 +142,9 @@ public class XPManager {
     private PlayerXPData loadPlayerXP(UUID playerUUID) {
         String sql = "SELECT * FROM player_xp WHERE player_uuid = ?";
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, playerUUID.toString());
             ResultSet rs = pstmt.executeQuery();
@@ -172,8 +173,9 @@ public class XPManager {
             VALUES (?, ?, ?, ?)
             """;
 
-        try (Connection conn = plugin.getDataManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // Get shared connection - don't close it!
+        Connection conn = plugin.getDataManager().getConnection();
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, xpData.getPlayerUUID().toString());
             pstmt.setInt(2, xpData.getTotalXP());
