@@ -20,6 +20,9 @@ public class SurvivalSkillListener implements Listener {
     private final SeasonsOfConflict plugin;
     private final SkillEffectManager effectManager;
 
+    // Track last damage absorption time for each player (Damage Absorption skill)
+    private final java.util.Map<java.util.UUID, Long> lastDamageAbsorptionTime = new java.util.HashMap<>();
+
     public SurvivalSkillListener(SeasonsOfConflict plugin) {
         this.plugin = plugin;
         this.effectManager = plugin.getSkillEffectManager();
@@ -49,6 +52,41 @@ public class SurvivalSkillListener implements Listener {
 
         double damage = event.getDamage();
         EntityDamageEvent.DamageCause cause = event.getCause();
+
+        // Damage Absorption: First hit every 30s deals 50% less damage
+        if (effectManager.hasSkillByName(player, "damage_absorption")) {
+            long currentTime = System.currentTimeMillis();
+            Long lastAbsorption = lastDamageAbsorptionTime.get(player.getUniqueId());
+
+            // If 30 seconds have passed since last absorption (or first time)
+            if (lastAbsorption == null || (currentTime - lastAbsorption) >= 30000) {
+                // Reduce damage by 50%
+                damage = damage * 0.50;
+                lastDamageAbsorptionTime.put(player.getUniqueId(), currentTime);
+
+                // Visual: Shield particles
+                player.getWorld().spawnParticle(
+                    Particle.CRIT_MAGIC,
+                    player.getLocation().add(0, 1, 0),
+                    25,
+                    0.5, 0.5, 0.5,
+                    0.2
+                );
+                player.getWorld().spawnParticle(
+                    Particle.ENCHANTMENT_TABLE,
+                    player.getLocation().add(0, 1, 0),
+                    15,
+                    0.4, 0.4, 0.4,
+                    0.1
+                );
+
+                // Sound effect
+                player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.7f, 1.5f);
+
+                // Message
+                player.sendMessage(org.bukkit.ChatColor.AQUA + "🛡 Damage Absorption! -50% damage");
+            }
+        }
 
         // Warrior's Resolve: Cannot drop below 1 HP for 5s after fatal damage (3 min cooldown)
         if (effectManager.hasSkillByName(player, "warriors_resolve")) {

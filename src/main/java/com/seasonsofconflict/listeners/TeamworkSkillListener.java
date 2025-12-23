@@ -10,7 +10,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * Handles Teamwork Tree passive skill effects
@@ -95,6 +98,78 @@ public class TeamworkSkillListener implements Listener {
                     0.7f,
                     1.2f
                 );
+            }
+        }
+    }
+
+    /**
+     * Last Stand Protocol: Buff nearby teammates when player dies
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player deadPlayer = event.getEntity();
+        Location deathLocation = deadPlayer.getLocation();
+
+        // Find nearby teammates within 20 blocks who have Last Stand Protocol
+        for (Player nearbyPlayer : deathLocation.getWorld().getNearbyPlayers(deathLocation, 20.0)) {
+            if (nearbyPlayer.getUniqueId().equals(deadPlayer.getUniqueId())) {
+                continue; // Skip the dead player
+            }
+
+            // Check if same team
+            String deadTeam = plugin.getGameManager().getPlayerData(deadPlayer).getTeamId();
+            String nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+
+            if (deadTeam.equals(nearbyTeam) && effectManager.hasSkillByName(nearbyPlayer, "last_stand_protocol")) {
+                // Apply buffs: +40% damage and +25% damage resistance for 15 seconds
+                nearbyPlayer.addPotionEffect(new PotionEffect(
+                    PotionEffectType.INCREASE_DAMAGE,
+                    300, // 15 seconds
+                    1,   // Level II (+40% damage - stronger than regular strength)
+                    false,
+                    true,
+                    true
+                ));
+                nearbyPlayer.addPotionEffect(new PotionEffect(
+                    PotionEffectType.DAMAGE_RESISTANCE,
+                    300, // 15 seconds
+                    1,   // Level II (+25% resistance)
+                    false,
+                    true,
+                    true
+                ));
+
+                // Visual: Dramatic red/orange flame particles
+                nearbyPlayer.getWorld().spawnParticle(
+                    Particle.FLAME,
+                    nearbyPlayer.getLocation().add(0, 1, 0),
+                    40,
+                    0.5, 1.0, 0.5,
+                    0.15
+                );
+                nearbyPlayer.getWorld().spawnParticle(
+                    Particle.LAVA,
+                    nearbyPlayer.getLocation().add(0, 1, 0),
+                    20,
+                    0.3, 0.5, 0.3,
+                    0.1
+                );
+
+                // Glowing effect
+                nearbyPlayer.setGlowing(true);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (nearbyPlayer.isOnline()) {
+                        nearbyPlayer.setGlowing(false);
+                    }
+                }, 300L); // Remove after 15 seconds
+
+                // Sound effect - dramatic dragon growl
+                nearbyPlayer.playSound(nearbyPlayer.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.8f, 1.2f);
+
+                // Message
+                MessageUtils.sendMessage(nearbyPlayer,
+                    "&c&l⚔ &4LAST STAND PROTOCOL! &c" + deadPlayer.getName() + " has fallen! " +
+                    "&e+40% damage, +25% resistance (15s)");
             }
         }
     }

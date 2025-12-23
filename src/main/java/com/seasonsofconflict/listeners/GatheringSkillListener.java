@@ -10,7 +10,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Item;
+import org.bukkit.util.Vector;
 
 /**
  * Handles Gathering Tree passive skill effects
@@ -341,5 +345,82 @@ public class GatheringSkillListener implements Listener {
         if (felledCount > 0) {
             MessageUtils.sendMessage(player, "&6🪓 &eFelled tree: &a" + (felledCount + 1) + " &elogs!");
         }
+    }
+
+    /**
+     * Tool Durability: Tools last 2x longer, won't break (stop at 1 durability)
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onToolDamage(PlayerItemDamageEvent event) {
+        Player player = event.getPlayer();
+        ItemStack tool = event.getItem();
+
+        // Check if player has Tool Durability skill
+        if (!effectManager.hasSkillByName(player, "tool_durability")) {
+            return;
+        }
+
+        // Only apply to tools
+        if (!isTool(tool.getType())) {
+            return;
+        }
+
+        // 50% chance to not consume durability (effectively 2x durability)
+        if (Math.random() < 0.50) {
+            event.setCancelled(true);
+        }
+
+        // Prevent tool from breaking (stop at 1 durability)
+        if (tool.getType().getMaxDurability() > 0) {
+            int currentDurability = tool.getType().getMaxDurability() - ((org.bukkit.inventory.meta.Damageable) tool.getItemMeta()).getDamage();
+            if (currentDurability <= 2 && event.getDamage() > 0) {
+                event.setCancelled(true);
+                MessageUtils.sendMessage(player, "&6⚠ &eTool saved from breaking! (Repair it soon)");
+            }
+        }
+    }
+
+    /**
+     * Resource Magnet: Items fly to you from 8 blocks away
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemSpawn(ItemSpawnEvent event) {
+        Item item = event.getEntity();
+        Location itemLoc = item.getLocation();
+
+        // Find nearby players with Resource Magnet
+        for (Player player : item.getWorld().getNearbyPlayers(itemLoc, 8.0)) {
+            if (effectManager.hasSkillByName(player, "resource_magnet")) {
+                // Pull item toward player
+                Vector direction = player.getLocation().toVector().subtract(itemLoc.toVector()).normalize();
+                item.setVelocity(direction.multiply(0.3));
+
+                // Visual: Tracer particles
+                item.getWorld().spawnParticle(
+                    Particle.VILLAGER_HAPPY,
+                    itemLoc,
+                    2,
+                    0.1, 0.1, 0.1,
+                    0
+                );
+                break; // Only pull to first player with skill
+            }
+        }
+    }
+
+    /**
+     * Check if material is a tool
+     */
+    private boolean isTool(Material material) {
+        String name = material.name();
+        return name.contains("PICKAXE") ||
+               name.contains("AXE") ||
+               name.contains("SHOVEL") ||
+               name.contains("HOE") ||
+               name.contains("SWORD") ||
+               name.equals("FISHING_ROD") ||
+               name.equals("SHEARS") ||
+               name.equals("BOW") ||
+               name.equals("CROSSBOW");
     }
 }
