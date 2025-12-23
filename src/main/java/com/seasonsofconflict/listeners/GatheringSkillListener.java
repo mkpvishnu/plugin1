@@ -407,7 +407,13 @@ public class GatheringSkillListener implements Listener {
         Location itemLoc = item.getLocation();
 
         // Find nearby players with Resource Magnet
-        for (Player player : item.getWorld().getNearbyPlayers(itemLoc, 8.0)) {
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            // Check if within 8 blocks
+            if (!player.getWorld().equals(itemLoc.getWorld()) ||
+                player.getLocation().distance(itemLoc) > 8.0) {
+                continue;
+            }
+
             if (effectManager.hasSkillByName(player, "resource_magnet")) {
                 // Pull item toward player
                 Vector direction = player.getLocation().toVector().subtract(itemLoc.toVector()).normalize();

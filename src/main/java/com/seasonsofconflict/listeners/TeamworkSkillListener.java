@@ -46,17 +46,23 @@ public class TeamworkSkillListener implements Listener {
 
         // Find nearby teammates with Guardian Angel skill within 10 blocks
         Location victimLoc = victim.getLocation();
-        String victimTeam = plugin.getGameManager().getPlayerData(victim).getTeamId();
+        int victimTeam = plugin.getGameManager().getPlayerData(victim).getTeamId();
 
-        for (Player nearbyPlayer : victimLoc.getWorld().getNearbyPlayers(victimLoc, 10.0)) {
+        for (Player nearbyPlayer : org.bukkit.Bukkit.getOnlinePlayers()) {
             if (nearbyPlayer.getUniqueId().equals(victim.getUniqueId())) {
                 continue; // Skip the victim
             }
 
-            // Check if same team
-            String nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+            // Check if within 10 blocks
+            if (!nearbyPlayer.getWorld().equals(victimLoc.getWorld()) ||
+                nearbyPlayer.getLocation().distance(victimLoc) > 10.0) {
+                continue;
+            }
 
-            if (victimTeam.equals(nearbyTeam) && effectManager.hasSkillByName(nearbyPlayer, "guardian_angel")) {
+            // Check if same team
+            int nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+
+            if (victimTeam == nearbyTeam && effectManager.hasSkillByName(nearbyPlayer, "guardian_angel")) {
                 // Try to activate Guardian Angel (5 min cooldown = 300 seconds)
                 if (plugin.getCooldownManager().tryActivateSkill(nearbyPlayer, "guardian_angel_passive", 300)) {
                     // Teleport to victim
@@ -181,17 +187,24 @@ public class TeamworkSkillListener implements Listener {
         Player deadPlayer = event.getEntity();
         Location deathLocation = deadPlayer.getLocation();
 
+        int deadTeam = plugin.getGameManager().getPlayerData(deadPlayer).getTeamId();
+
         // Find nearby teammates within 20 blocks who have Last Stand Protocol
-        for (Player nearbyPlayer : deathLocation.getWorld().getNearbyPlayers(deathLocation, 20.0)) {
+        for (Player nearbyPlayer : org.bukkit.Bukkit.getOnlinePlayers()) {
             if (nearbyPlayer.getUniqueId().equals(deadPlayer.getUniqueId())) {
                 continue; // Skip the dead player
             }
 
-            // Check if same team
-            String deadTeam = plugin.getGameManager().getPlayerData(deadPlayer).getTeamId();
-            String nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+            // Check if within 20 blocks
+            if (!nearbyPlayer.getWorld().equals(deathLocation.getWorld()) ||
+                nearbyPlayer.getLocation().distance(deathLocation) > 20.0) {
+                continue;
+            }
 
-            if (deadTeam.equals(nearbyTeam) && effectManager.hasSkillByName(nearbyPlayer, "last_stand_protocol")) {
+            // Check if same team
+            int nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+
+            if (deadTeam == nearbyTeam && effectManager.hasSkillByName(nearbyPlayer, "last_stand_protocol")) {
                 // Apply buffs: +40% damage and +25% damage resistance for 15 seconds
                 nearbyPlayer.addPotionEffect(new PotionEffect(
                     PotionEffectType.INCREASE_DAMAGE,

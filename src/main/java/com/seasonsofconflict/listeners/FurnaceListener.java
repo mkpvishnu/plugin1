@@ -38,7 +38,13 @@ public class FurnaceListener implements Listener {
         ItemStack result = event.getResult();
 
         // Find nearby players with Bulk Processing skill (within 10 blocks)
-        for (Player player : furnaceLocation.getWorld().getNearbyPlayers(furnaceLocation, 10.0)) {
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            // Check if within 10 blocks
+            if (!player.getWorld().equals(furnaceLocation.getWorld()) ||
+                player.getLocation().distance(furnaceLocation) > 10.0) {
+                continue;
+            }
+
             if (effectManager.hasSkillByName(player, "bulk_processing")) {
                 // 25% chance to double the smelted item
                 if (Math.random() < 0.25) {

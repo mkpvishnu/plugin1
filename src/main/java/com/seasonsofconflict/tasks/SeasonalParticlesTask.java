@@ -158,10 +158,10 @@ public class SeasonalParticlesTask extends BukkitRunnable {
                             2 + Math.random() * 3,
                             (Math.random() - 0.5) * 8
                         ),
-                        org.bukkit.Material.BROWN_CONCRETE.createBlockData(),
-                        3,
-                        0.8, 0.5, 0.8,
-                        0.02
+                        3,     // count
+                        0.8, 0.5, 0.8,  // offsets
+                        0.02,  // extra
+                        org.bukkit.Material.BROWN_CONCRETE.createBlockData()  // data - must be last
                     );
                 }
                 break;

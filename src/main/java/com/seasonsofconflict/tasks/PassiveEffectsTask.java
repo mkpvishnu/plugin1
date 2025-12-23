@@ -49,7 +49,7 @@ public class PassiveEffectsTask extends BukkitRunnable {
         }
 
         // Get player's team
-        String playerTeam = plugin.getGameManager().getPlayerData(player).getTeamId();
+        int playerTeam = plugin.getGameManager().getPlayerData(player).getTeamId();
 
         // Apply glowing to all teammates (no range limit, server-wide)
         for (Player teammate : Bukkit.getOnlinePlayers()) {
@@ -57,9 +57,9 @@ public class PassiveEffectsTask extends BukkitRunnable {
                 continue; // Skip self
             }
 
-            String teammateTeam = plugin.getGameManager().getPlayerData(teammate).getTeamId();
+            int teammateTeam = plugin.getGameManager().getPlayerData(teammate).getTeamId();
 
-            if (playerTeam.equals(teammateTeam)) {
+            if (playerTeam == teammateTeam) {
                 // Make teammate glow (visible through walls to this player)
                 teammate.setGlowing(true);
 

@@ -479,7 +479,7 @@ public class SkillEffectManager {
     /**
      * Winter Adaptation: Check if immune to freezing, get damage bonus in Winter
      */
-    public boolean hasWinterAdaptation(Player player) {
+    public boolean isWinterAdaptation(Player player) {
         return hasSkillByName(player, "winter_adaptation");
     }
 
@@ -521,7 +521,38 @@ public class SkillEffectManager {
     }
 
     /**
-     * Inspirational Leader: Apply XP and gathering bonuses to nearby teammates
+     * Inspirational Leader: Check if player has nearby teammate with the skill
+     */
+    public boolean hasNearbyInspirationalLeader(Player player) {
+        int playerTeam = plugin.getGameManager().getPlayerData(player).getTeamId();
+
+        for (Player other : org.bukkit.Bukkit.getOnlinePlayers()) {
+            if (other.getUniqueId().equals(player.getUniqueId())) {
+                continue;
+            }
+
+            int otherTeam = plugin.getGameManager().getPlayerData(other).getTeamId();
+
+            if (playerTeam == otherTeam && hasSkillByName(other, "inspirational_leader")) {
+                // Check if within 50 blocks
+                if (player.getWorld().equals(other.getWorld()) &&
+                    player.getLocation().distance(other.getLocation()) <= 50.0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Strategic Mind: Check if player has the skill
+     */
+    public boolean hasStrategicMind(Player player) {
+        return hasSkillByName(player, "strategic_mind");
+    }
+
+    /**
+     * OLD METHOD - Check if any teammate within 50 blocks has Inspirational Leader
      */
     public boolean isNearInspirationalLeader(Player player) {
         // Check if any teammate within 50 blocks has Inspirational Leader
@@ -532,7 +563,7 @@ public class SkillEffectManager {
                 var playerTeam = plugin.getGameManager().getPlayerData(player);
                 var otherTeam = plugin.getGameManager().getPlayerData(p);
                 return playerTeam != null && otherTeam != null &&
-                       playerTeam.getTeamId() == otherTeam.getTeamId();
+                       playerTeam.getTeamId().equals(otherTeam.getTeamId());
             })
             .anyMatch(p -> hasSkillByName(p, "inspirational_leader"));
     }
