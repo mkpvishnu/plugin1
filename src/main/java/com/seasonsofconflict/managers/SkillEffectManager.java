@@ -563,16 +563,9 @@ public class SkillEffectManager {
                 var playerTeam = plugin.getGameManager().getPlayerData(player);
                 var otherTeam = plugin.getGameManager().getPlayerData(p);
                 return playerTeam != null && otherTeam != null &&
-                       playerTeam.getTeamId().equals(otherTeam.getTeamId());
+                       playerTeam.getTeamId() == otherTeam.getTeamId();
             })
             .anyMatch(p -> hasSkillByName(p, "inspirational_leader"));
-    }
-
-    /**
-     * Strategic Mind: Check if player has this skill (enables seeing teammates through walls)
-     */
-    public boolean hasStrategicMind(Player player) {
-        return hasSkillByName(player, "strategic_mind");
     }
 
     /**
