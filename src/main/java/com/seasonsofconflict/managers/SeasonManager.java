@@ -158,6 +158,11 @@ public class SeasonManager {
 
             Location loc = player.getLocation();
 
+            // Winter Adaptation: Immune to freezing damage
+            if (plugin.getSkillEffectManager().isWinterAdaptation(player)) {
+                continue; // Skip freezing damage for players with Winter Adaptation
+            }
+
             // Check if player is outdoors (can see sky)
             if (loc.getWorld().getHighestBlockYAt(loc) <= loc.getBlockY()) {
                 // Player is outdoors

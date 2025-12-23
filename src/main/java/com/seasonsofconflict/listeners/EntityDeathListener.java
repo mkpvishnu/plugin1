@@ -44,6 +44,11 @@ public class EntityDeathListener implements Listener {
                 event.setDroppedExp((int) (event.getDroppedExp() * xpBonus));
             }
 
+            // Relentless Assault: Each kill grants +20% attack speed for 10s (stacks 3x)
+            if (plugin.getSkillEffectManager().hasSkillByName(killer, "relentless_assault")) {
+                applyRelentlessAssault(killer);
+            }
+
             // Fall: +25% all drops from mobs
             if (season == Season.FALL) {
                 applyFallDropBonus(event);
@@ -111,5 +116,43 @@ public class EntityDeathListener implements Listener {
                type == Material.SALMON ||
                type == Material.TROPICAL_FISH ||
                type == Material.PUFFERFISH;
+    }
+
+    /**
+     * Relentless Assault: Each kill grants +20% attack speed for 10s (stacks 3x)
+     */
+    private void applyRelentlessAssault(Player player) {
+        // Apply Speed effect (simulates attack speed increase)
+        int currentLevel = 0;
+        if (player.hasPotionEffect(org.bukkit.potion.PotionEffectType.SPEED)) {
+            currentLevel = player.getPotionEffect(org.bukkit.potion.PotionEffectType.SPEED).getAmplifier();
+        }
+
+        // Max 3 stacks (levels 0, 1, 2)
+        int newLevel = Math.min(currentLevel + 1, 2);
+
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+            org.bukkit.potion.PotionEffectType.SPEED,
+            200, // 10 seconds
+            newLevel,
+            false,
+            true,
+            true
+        ));
+
+        // Visual: Speed lines particle effect
+        player.getWorld().spawnParticle(
+            org.bukkit.Particle.CRIT,
+            player.getLocation().add(0, 1, 0),
+            15,
+            0.5, 0.5, 0.5,
+            0.3
+        );
+
+        // Sound
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.7f, 1.5f);
+
+        // Message with stack count
+        player.sendMessage(org.bukkit.ChatColor.RED + "⚔ Relentless Assault! (" + (newLevel + 1) + "/3 stacks)");
     }
 }

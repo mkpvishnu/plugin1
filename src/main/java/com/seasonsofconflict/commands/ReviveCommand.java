@@ -52,7 +52,13 @@ public class ReviveCommand implements CommandExecutor {
         }
 
         TeamData team = plugin.getTeamManager().getTeam(playerData.getTeamId());
-        int cost = plugin.getGameManager().getGameState().getRevivalCost();
+        int baseCost = plugin.getGameManager().getGameState().getRevivalCost();
+
+        // Combat Medic: -25% revival cost
+        double finalCost = plugin.getSkillEffectManager().applyCombatMedicDiscount(player, baseCost);
+        int cost = (int) Math.ceil(finalCost);
+
+        boolean hasCombatMedic = plugin.getSkillEffectManager().hasSkillByName(player, "combat_medic");
 
         if (team.getQuestPoints() < cost) {
             MessageUtils.sendError(player, "Not enough points! Need " + cost + ", have " + team.getQuestPoints());
@@ -65,7 +71,33 @@ public class ReviveCommand implements CommandExecutor {
         }
 
         plugin.getHealthManager().revivePlayer(target, team);
-        MessageUtils.sendSuccess(player, "Revived " + target.getName() + " for " + cost + " points!");
+
+        // Combat Medic: Grant +5 min damage resistance to revived player
+        if (hasCombatMedic) {
+            target.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE,
+                6000, // 5 minutes = 300 seconds = 6000 ticks
+                1,    // Level II (+25% damage resistance)
+                false,
+                true,
+                true
+            ));
+
+            // Visual: Protection particles
+            target.getWorld().spawnParticle(
+                org.bukkit.Particle.TOTEM,
+                target.getLocation().add(0, 1, 0),
+                30,
+                0.5, 1.0, 0.5,
+                0.1
+            );
+
+            MessageUtils.sendMessage(target,
+                "&a&l✚ &aCombat Medic Protection! &7+5 min damage resistance");
+            MessageUtils.sendSuccess(player, "Revived " + target.getName() + " for " + cost + " points (Combat Medic: -25%)!");
+        } else {
+            MessageUtils.sendSuccess(player, "Revived " + target.getName() + " for " + cost + " points!");
+        }
 
         return true;
     }

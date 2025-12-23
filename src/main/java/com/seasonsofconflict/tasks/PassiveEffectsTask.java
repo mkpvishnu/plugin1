@@ -31,12 +31,41 @@ public class PassiveEffectsTask extends BukkitRunnable {
             // Swift Hands: Continuous Haste effect (renewed every 10s)
             gatheringListener.applySwiftHandsEffect(player);
 
-            // Treasure Hunter: Make ores glow through walls
-            gatheringListener.applyTreasureHunterEffect(player);
-
             // Regeneration: 0.5 HP every 5s when out of combat
             // (This task runs every 5s, so perfect timing)
             survivalListener.applyRegeneration(player);
+
+            // Strategic Mind: Make teammates glow to see through walls
+            applyStrategicMind(player);
+        }
+    }
+
+    /**
+     * Strategic Mind: Apply glowing effect to teammates
+     */
+    private void applyStrategicMind(Player player) {
+        if (!plugin.getSkillEffectManager().hasStrategicMind(player)) {
+            return;
+        }
+
+        // Get player's team
+        int playerTeam = plugin.getGameManager().getPlayerData(player).getTeamId();
+
+        // Apply glowing to all teammates (no range limit, server-wide)
+        for (Player teammate : Bukkit.getOnlinePlayers()) {
+            if (teammate.getUniqueId().equals(player.getUniqueId())) {
+                continue; // Skip self
+            }
+
+            int teammateTeam = plugin.getGameManager().getPlayerData(teammate).getTeamId();
+
+            if (playerTeam == teammateTeam) {
+                // Make teammate glow (visible through walls to this player)
+                teammate.setGlowing(true);
+
+                // Note: In Minecraft, glowing is global. For true per-player visibility,
+                // we'd need to use packets/scoreboard teams. This is a simplified implementation.
+            }
         }
     }
 }
