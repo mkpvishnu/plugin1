@@ -114,7 +114,7 @@ public class SeasonalParticlesTask extends BukkitRunnable {
                 // Occasional lava drips for extreme heat
                 if (Math.random() < 0.3) {
                     loc.getWorld().spawnParticle(
-                        Particle.DRIPPING_LAVA,
+                        Particle.DRIP_LAVA,
                         loc.clone().add(
                             (Math.random() - 0.5) * 5,
                             4,
@@ -158,7 +158,7 @@ public class SeasonalParticlesTask extends BukkitRunnable {
                             2 + Math.random() * 3,
                             (Math.random() - 0.5) * 8
                         ),
-                        Material.BROWN_CONCRETE.createBlockData(),
+                        org.bukkit.Material.BROWN_CONCRETE.createBlockData(),
                         3,
                         0.8, 0.5, 0.8,
                         0.02
