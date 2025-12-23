@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -26,6 +27,76 @@ public class TeamworkSkillListener implements Listener {
     public TeamworkSkillListener(SeasonsOfConflict plugin) {
         this.plugin = plugin;
         this.effectManager = plugin.getSkillEffectManager();
+    }
+
+    /**
+     * Guardian Angel: Teleport to teammate taking fatal damage
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) {
+            return;
+        }
+
+        // Check if damage would be fatal
+        double damageAfter = victim.getHealth() - event.getFinalDamage();
+        if (damageAfter > 0) {
+            return; // Not fatal, no need for guardian angel
+        }
+
+        // Find nearby teammates with Guardian Angel skill within 10 blocks
+        Location victimLoc = victim.getLocation();
+        String victimTeam = plugin.getGameManager().getPlayerData(victim).getTeamId();
+
+        for (Player nearbyPlayer : victimLoc.getWorld().getNearbyPlayers(victimLoc, 10.0)) {
+            if (nearbyPlayer.getUniqueId().equals(victim.getUniqueId())) {
+                continue; // Skip the victim
+            }
+
+            // Check if same team
+            String nearbyTeam = plugin.getGameManager().getPlayerData(nearbyPlayer).getTeamId();
+
+            if (victimTeam.equals(nearbyTeam) && effectManager.hasSkillByName(nearbyPlayer, "guardian_angel")) {
+                // Try to activate Guardian Angel (5 min cooldown = 300 seconds)
+                if (plugin.getCooldownManager().tryActivateSkill(nearbyPlayer, "guardian_angel_passive", 300)) {
+                    // Teleport to victim
+                    nearbyPlayer.teleport(victimLoc);
+
+                    // Visual: Angelic particles
+                    nearbyPlayer.getWorld().spawnParticle(
+                        Particle.TOTEM,
+                        victimLoc.clone().add(0, 1, 0),
+                        50,
+                        1.0, 1.0, 1.0,
+                        0.2
+                    );
+                    nearbyPlayer.getWorld().spawnParticle(
+                        Particle.END_ROD,
+                        nearbyPlayer.getLocation().add(0, 1, 0),
+                        30,
+                        0.5, 1.0, 0.5,
+                        0.1
+                    );
+
+                    // Sound: Angel arrival
+                    nearbyPlayer.getWorld().playSound(
+                        victimLoc,
+                        Sound.BLOCK_BEACON_ACTIVATE,
+                        1.0f,
+                        1.5f
+                    );
+
+                    // Messages
+                    MessageUtils.sendMessage(nearbyPlayer,
+                        "&e&l✦ &6GUARDIAN ANGEL! &eTeleported to save " + victim.getName());
+                    MessageUtils.sendMessage(victim,
+                        "&e&l✦ &6" + nearbyPlayer.getName() + " has arrived to help!");
+
+                    // Only one guardian angel can respond
+                    break;
+                }
+            }
+        }
     }
 
     /**

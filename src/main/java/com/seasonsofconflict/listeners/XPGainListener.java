@@ -127,12 +127,24 @@ public class XPGainListener implements Listener {
      * Award XP to a player
      */
     private void awardXP(Player player, int amount, String source) {
+        // Inspirational Leader: +10% XP if teammate with skill is within 50 blocks
+        boolean hasInspirationalLeader = plugin.getSkillEffectManager().hasNearbyInspirationalLeader(player);
+        if (hasInspirationalLeader) {
+            amount = (int) (amount * 1.10);
+        }
+
         int skillPointsEarned = plugin.getXPManager().addXPWithMultipliers(player, amount);
 
         // Notify player if they earned skill points
         if (skillPointsEarned > 0) {
-            MessageUtils.sendMessage(player, "&a&l+ " + skillPointsEarned + " Skill Point" +
-                (skillPointsEarned > 1 ? "s" : "") + "! &7(Use /skills)");
+            String message = "&a&l+ " + skillPointsEarned + " Skill Point" +
+                (skillPointsEarned > 1 ? "s" : "") + "! &7(Use /skills)";
+
+            if (hasInspirationalLeader) {
+                message += " &e(+10% from Inspirational Leader)";
+            }
+
+            MessageUtils.sendMessage(player, message);
         }
     }
 

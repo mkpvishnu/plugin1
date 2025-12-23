@@ -137,6 +137,35 @@ public class SurvivalSkillListener implements Listener {
             );
         }
 
+        // Thorns: Reflect 20% damage back to attacker
+        if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent damageByEntity) {
+            if (damageByEntity.getDamager() instanceof org.bukkit.entity.LivingEntity attacker) {
+                double reflectedDamage = effectManager.applyThorns(player, damage);
+
+                if (reflectedDamage > 0) {
+                    attacker.damage(reflectedDamage);
+
+                    // Visual: Cactus/thorn particles from defender
+                    player.getWorld().spawnParticle(
+                        Particle.BLOCK_CRACK,
+                        player.getLocation().add(0, 1, 0),
+                        15,
+                        0.5, 0.5, 0.5,
+                        0.1,
+                        Material.CACTUS.createBlockData()
+                    );
+
+                    // Sound: Hurt sound
+                    player.getWorld().playSound(
+                        player.getLocation(),
+                        Sound.ENTITY_PLAYER_HURT_SWEET_BERRY_BUSH,
+                        0.7f,
+                        1.0f
+                    );
+                }
+            }
+        }
+
         // Fire Resistance: 80% reduction to fire/lava damage
         if (cause == EntityDamageEvent.DamageCause.FIRE ||
             cause == EntityDamageEvent.DamageCause.FIRE_TICK ||

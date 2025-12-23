@@ -81,6 +81,24 @@ public class GatheringSkillListener implements Listener {
             }
         }
 
+        // Inspirational Leader: +5% gathering bonus if teammate with skill is within 50 blocks
+        if (effectManager.hasNearbyInspirationalLeader(player)) {
+            if (isGatherableResource(blockType) && Math.random() < 0.05) {
+                for (ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand())) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), drop.clone());
+                }
+
+                // Visual: Leader particles (golden crown effect)
+                block.getWorld().spawnParticle(
+                    Particle.END_ROD,
+                    block.getLocation().add(0.5, 0.5, 0.5),
+                    5,
+                    0.2, 0.2, 0.2,
+                    0.05
+                );
+            }
+        }
+
         // Prospector: +20% bonus drops from iron/gold/coal ores
         if (isCommonOre(blockType) && effectManager.hasSkillByName(player, "prospector")) {
             // 20% chance for bonus drop

@@ -162,6 +162,22 @@ public class CombatSkillListener implements Listener {
         // Apply Titan's Grip (+10% damage)
         finalDamage = effectManager.applyTitansGrip(attacker, finalDamage);
 
+        // Winter Adaptation: +20% damage in Winter
+        if (effectManager.isWinterAdaptation(attacker)) {
+            if (plugin.getGameManager().getGameState().getCurrentSeason() == com.seasonsofconflict.models.Season.WINTER) {
+                finalDamage = finalDamage * 1.20;
+
+                // Visual: Ice/snow particles
+                target.getWorld().spawnParticle(
+                    Particle.SNOWFLAKE,
+                    target.getLocation().add(0, 1, 0),
+                    10,
+                    0.3, 0.3, 0.3,
+                    0.05
+                );
+            }
+        }
+
         // Apply Lifesteal (15% healing from PvP damage)
         boolean isPvP = target instanceof Player;
         double healAmount = effectManager.applyLifesteal(attacker, finalDamage, isPvP);
