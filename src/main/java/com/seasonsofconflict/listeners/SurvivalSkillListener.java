@@ -50,6 +50,40 @@ public class SurvivalSkillListener implements Listener {
         double damage = event.getDamage();
         EntityDamageEvent.DamageCause cause = event.getCause();
 
+        // Warrior's Resolve: Cannot drop below 1 HP for 5s after fatal damage (3 min cooldown)
+        if (effectManager.hasSkillByName(player, "warriors_resolve")) {
+            double playerHealth = player.getHealth();
+
+            if (playerHealth - damage <= 0) {
+                // Check if cooldown is ready
+                if (plugin.getCooldownManager().tryActivateSkill(player, "warriors_resolve_passive", 180)) {
+                    // Prevent death - set to 1 HP
+                    event.setDamage(playerHealth - 1.0);
+
+                    // Apply invulnerability for 5 seconds
+                    player.setInvulnerable(true);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        player.setInvulnerable(false);
+                    }, 100L); // 5 seconds
+
+                    // Visual: Golden shield particles
+                    player.getWorld().spawnParticle(
+                        Particle.TOTEM,
+                        player.getLocation().add(0, 1, 0),
+                        50,
+                        0.5, 0.5, 0.5,
+                        0.3
+                    );
+
+                    // Sound
+                    player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
+
+                    player.sendMessage(org.bukkit.ChatColor.GOLD + "⚔ Warrior's Resolve activated!");
+                    return;
+                }
+            }
+        }
+
         // Thick Skin: -10% damage from all sources
         damage = effectManager.applyThickSkin(player, damage);
 
@@ -116,6 +150,86 @@ public class SurvivalSkillListener implements Listener {
         if (damage != event.getDamage()) {
             event.setDamage(damage);
         }
+
+        // Check for Second Wind and Last Stand AFTER damage is applied
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline() || !player.isValid()) return;
+
+            double currentHealth = player.getHealth();
+            double maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+
+            // Second Wind: Instantly heal 5 hearts when below 5 hearts (5 min cooldown)
+            if (currentHealth <= 10.0 && effectManager.hasSkillByName(player, "second_wind")) {
+                if (plugin.getCooldownManager().tryActivateSkill(player, "second_wind_passive", 300)) {
+                    // Heal 5 hearts (10 HP)
+                    double newHealth = Math.min(currentHealth + 10.0, maxHealth);
+                    player.setHealth(newHealth);
+
+                    // Visual: Burst of regeneration particles
+                    player.getWorld().spawnParticle(
+                        Particle.HEART,
+                        player.getLocation().add(0, 2, 0),
+                        20,
+                        0.5, 0.5, 0.5,
+                        0.1
+                    );
+                    player.getWorld().spawnParticle(
+                        Particle.TOTEM,
+                        player.getLocation().add(0, 1, 0),
+                        30,
+                        0.3, 0.5, 0.3,
+                        0.2
+                    );
+
+                    // Sound
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
+
+                    player.sendMessage(org.bukkit.ChatColor.GREEN + "💚 Second Wind activated! +5 hearts");
+                }
+            }
+
+            // Last Stand: Below 10 hearts → +30% damage & +20% damage resist for 10s (2 min cooldown)
+            if (currentHealth <= 20.0 && effectManager.hasSkillByName(player, "last_stand")) {
+                if (plugin.getCooldownManager().tryActivateSkill(player, "last_stand_passive", 120)) {
+                    // Apply potion effects
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE,
+                        200, // 10 seconds
+                        0,   // Level I (+30% damage from skill calculation)
+                        false,
+                        true,
+                        true
+                    ));
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE,
+                        200, // 10 seconds
+                        0,   // Level I (+20% resist from skill calculation)
+                        false,
+                        true,
+                        true
+                    ));
+
+                    // Visual: Glowing + flame particles
+                    player.setGlowing(true);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        player.setGlowing(false);
+                    }, 200L);
+
+                    player.getWorld().spawnParticle(
+                        Particle.FLAME,
+                        player.getLocation().add(0, 1, 0),
+                        30,
+                        0.3, 0.5, 0.3,
+                        0.1
+                    );
+
+                    // Sound
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.5f);
+
+                    player.sendMessage(org.bukkit.ChatColor.RED + "⚔ Last Stand! +30% damage, +20% resistance!");
+                }
+            }
+        });
     }
 
     /**
